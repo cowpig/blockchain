@@ -1,4 +1,5 @@
-use std::hash::{Hash, Hasher, SipHasher};
+use std::hash::{Hash, Hasher};
+use std::collections::hash_map::DefaultHasher;
 
 #[derive(Debug)]
 struct Block {
@@ -16,26 +17,30 @@ impl Hash for Block {
 }
 
 fn hash<T: Hash>(t: &T) -> u64 {
-    let mut s = SipHasher::new();
+    let mut s = DefaultHasher::new();
     t.hash(&mut s);
-    s.finish()
+    return s.finish()
 }
 
-fn new_block(prev_block: Block, data: String) -> Block {
+fn next_block<'a>(prev_block: &'a Block, data: String) -> Block {
 	return Block {
 		id: prev_block.id + 1,
-		prev_hash: hash(&prev_block),
+		prev_hash: hash(prev_block),
 		data: data,
 	}
 }
 
 fn main() {
-	let genesis_block = Block {
+	let mut blocks = vec![Block {
 		id: 0,
 		prev_hash: 0,
 		data: "I'm awake!".to_string(),
-	};
+	}];
 
-	let first_block = new_block(genesis_block, "bojangles".to_string());
-	println!("{:?}", first_block);
+	let mut next = next_block(blocks.last().unwrap(), "stop. hammertime.".to_string());
+	blocks.push(next);
+	let mut next = next_block(blocks.last().unwrap(), "stop. hammertime.".to_string());
+	blocks.push(next);
+
+	println!("{:?}", blocks);
 }
