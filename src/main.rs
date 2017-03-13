@@ -15,10 +15,16 @@ impl Hash for Block {
 	}
 }
 
+fn hash<T: Hash>(t: &T) -> u64 {
+    let mut s = SipHasher::new();
+    t.hash(&mut s);
+    s.finish()
+}
+
 fn new_block(prev_block: Block, data: String) -> Block {
 	return Block {
 		id: prev_block.id + 1,
-		prev_hash: 0, //TODO
+		prev_hash: hash(&prev_block),
 		data: data,
 	}
 }
