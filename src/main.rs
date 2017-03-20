@@ -31,11 +31,17 @@ fn next_block(prev_block: & Block, data: String) -> Block {
 }
 
 fn is_valid_block(prev_block: & Block, new_block: & Block) -> bool {
-	return prev_block.id == new_block.id + 1 && hash(prev_block) == new_block.prev_hash;
+	return prev_block.id + 1 == new_block.id && hash(prev_block) == new_block.prev_hash;
 }
 
 fn is_valid_chain(chain: & Vec<Block>) -> bool{
-	// return chain.iter().fold(false, |valid, &b| valid && is_valid());
+	let mut prev = &chain[0];
+	for block in chain[1..].iter() {
+		if !is_valid_block(prev, block) {
+			return false
+		}
+		prev = block;
+	}
 	return true
 }
 
@@ -59,5 +65,10 @@ fn main() {
 	next = next_block(blocks.last().unwrap(), "hammertime.".to_string());
 	blocks.push(next);
 
-	println!("{:?}", blocks);
+	println!("{:?}", blocks[0]);
+	for bs in blocks[..blocks.len() - 1].iter().zip(blocks[1..].iter()) {
+		let (b1, b2) = bs;
+		println!("{:?} valid? {:?}", b2, is_valid_block(b1, b2));
+	}
+	println!("valid chain? {:?}", is_valid_chain(&blocks));
 }
