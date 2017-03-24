@@ -25,5 +25,7 @@ fn test_blockchain() {
 	assert!(is_valid_chain(&blocks));
 	// println!("valid chain? {:?}", is_valid_chain(&blocks));
 
-	// assert_eq!(blocks, resolve(blocks, blocks[..2]))
+	assert_eq!(blocks[0], blocks[0].clone());
+
+	assert_eq!(blocks, *resolve(& blocks, & blocks[..2].to_vec()));
 }
