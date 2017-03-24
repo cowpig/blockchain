@@ -1,7 +1,7 @@
 use std::hash::{Hash, Hasher};
 use std::collections::hash_map::DefaultHasher;
 
-#[derive(Debug)]
+#[derive(Debug, Eq, PartialEq, Clone)]
 pub struct Block {
 	pub id: u64,
 	pub prev_hash: u64,

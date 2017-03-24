@@ -1,6 +1,4 @@
-Naxy McSweets
-
----
+## Naxy McSweets
 
 A blockchain writtein in python and rust
 
