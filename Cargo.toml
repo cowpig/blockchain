@@ -4,7 +4,8 @@ version = "0.1.0"
 authors = ["Max <max@recoset.com>"]
 
 [dependencies]
-tiny_http = "0.5"
+serde_json = "0.9"
+serde_derive = "0.9"
 
 [[bin]]
 name = "server"

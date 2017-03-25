@@ -8,7 +8,7 @@ pub struct Block {
 	pub data: String,
 }
 
-type Blockchain = Vec<Block>;
+pub type Blockchain = Vec<Block>;
 
 impl Hash for Block {
 	fn hash<H:Hasher>(&self, state:&mut H) {
