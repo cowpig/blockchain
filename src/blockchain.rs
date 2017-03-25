@@ -8,6 +8,8 @@ pub struct Block {
 	pub data: String,
 }
 
+type Blockchain = Vec<Block>;
+
 impl Hash for Block {
 	fn hash<H:Hasher>(&self, state:&mut H) {
 		self.id.hash(state);
@@ -34,7 +36,7 @@ pub fn is_valid_block(prev_block: & Block, new_block: & Block) -> bool {
 	return prev_block.id + 1 == new_block.id && hash(prev_block) == new_block.prev_hash;
 }
 
-pub fn is_valid_chain(chain: & Vec<Block>) -> bool{
+pub fn is_valid_chain(chain: & Blockchain) -> bool{
 	let mut prev = &chain[0];
 	for block in chain[1..].iter() {
 		if !is_valid_block(prev, block) {
@@ -45,7 +47,7 @@ pub fn is_valid_chain(chain: & Vec<Block>) -> bool{
 	return true
 }
 
-pub fn resolve<'a>(curr_chain: &'a Vec<Block>, new_chain: &'a Vec<Block>) -> &'a Vec<Block> {
+pub fn resolve<'a>(curr_chain: &'a Blockchain, new_chain: &'a Blockchain) -> &'a Blockchain {
 	if curr_chain.len() < new_chain.len() && is_valid_chain(new_chain) {
 		return new_chain;
 	}
