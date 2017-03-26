@@ -42,7 +42,7 @@ impl Node {
 	}
 
 	fn get_blocks(&self) -> String {
-		return "TODO".to_string() //to_json(self.blockchain)
+		return serde_json::to_string(&self.blockchain).unwrap();
 	}
 }
 
@@ -66,10 +66,13 @@ fn main() {
 		match io::stdin().read_line(&mut buffer) {
 		    Ok(n) => {
 		        println!("{} bytes read", n);
-		        println!("{}", buffer);
 		    }
 		    Err(error) => println!("error: {}", error),
 		}
-		// node.handle(parse(buffer));
+		let data = match serde_json::from_str(buffer.as_str()) {
+			Ok(val) => node.handle(val),
+			Err(error) => println!("msg should take the form {{\"cmd\": \"blocks|transaction|get_blocks\", \"data\": <data>}}")
+		};
+		
 	}
 }
