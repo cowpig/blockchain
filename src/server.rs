@@ -19,8 +19,8 @@ struct MsgStruct {
 	data: Option<MsgData>,
 }
 
-struct Node<'a> {
-	blockchain: &'a mut Blockchain
+struct Node<'b> {
+	blockchain: &'b mut Blockchain
 }
 
 impl<'a> Node<'a> {
@@ -37,8 +37,9 @@ impl<'a> Node<'a> {
 		match data {
 			MsgData::Transaction(_) => "need a new blockchain with cmd \"blocks\"".to_string(),
 			MsgData::Blockchain(blocks) => {
-				self.blockchain = resolve(self.blockchain, &blocks);
-				serde_json::to_string(self.blockchain).unwrap();
+				let new_blocks = resolve(self.blockchain, blocks);
+				self.blockchain = &mut *new_blocks;
+				return serde_json::to_string(self.blockchain).unwrap();
 			}
 		}
 	}
@@ -57,7 +58,7 @@ fn send(msg: String) {
 }	
 
 fn main() {
-	let mut blocks = vec![Block {
+	let blocks = & mut vec![Block {
 		id: 0,
 		prev_hash: 0,
 		data: "I'm awake!".to_string(),
