@@ -4,7 +4,7 @@ extern crate serde_json;
 
 extern crate blockchain;
 
-use blockchain::blockchain::{Block, Blockchain};
+use blockchain::blockchain::{Block, Blockchain, resolve};
 use std::io;
 
 #[derive(Serialize, Deserialize, Debug)]
@@ -19,11 +19,11 @@ struct MsgStruct {
 	data: Option<MsgData>,
 }
 
-struct Node {
-	blockchain: Blockchain
+struct Node<'a> {
+	blockchain: &'a mut Blockchain
 }
 
-impl Node {
+impl<'a> Node<'a> {
 	fn handle (&self, msg: MsgStruct) {
 		match msg.cmd.as_ref() {
 			"get_blocks" => send(self.get_blocks()),
@@ -34,7 +34,13 @@ impl Node {
 	}
 
 	fn blocks(&self, data: MsgData) -> String {
-		return "TODO".to_string()
+		match data {
+			MsgData::Transaction(_) => "need a new blockchain with cmd \"blocks\"".to_string(),
+			MsgData::Blockchain(blocks) => {
+				self.blockchain = resolve(self.blockchain, &blocks);
+				serde_json::to_string(self.blockchain).unwrap();
+			}
+		}
 	}
 
 	fn transaction(&self, data: MsgData) -> String {
@@ -64,10 +70,10 @@ fn main() {
 	loop {
 		let mut buffer = String::new();
 		match io::stdin().read_line(&mut buffer) {
-		    Ok(n) => {
-		        println!("{} bytes read", n);
-		    }
-		    Err(error) => println!("error: {}", error),
+			Ok(n) => {
+				println!("{} bytes read", n);
+			}
+			Err(error) => println!("error: {}", error),
 		}
 		let data = match serde_json::from_str(buffer.as_str()) {
 			Ok(val) => node.handle(val),
