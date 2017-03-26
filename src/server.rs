@@ -1,17 +1,19 @@
-extern crate rustc_serialize;
-extern crate blockchain;
+#[macro_use]
 extern crate serde_derive;
 extern crate serde_json;
+
+extern crate blockchain;
 
 use blockchain::blockchain::{Block, Blockchain};
 use std::io;
 
+#[derive(Serialize, Deserialize, Debug)]
 enum MsgData {
 	Transaction(String),
 	Blockchain(Blockchain),
 }
 
-#[derive(Serialize, Deserialize)]
+#[derive(Serialize, Deserialize, Debug)]
 struct MsgStruct {
 	cmd: String,
 	data: Option<MsgData>,
@@ -31,11 +33,11 @@ impl Node {
 		}
 	}
 
-	fn blocks(&self, block_json: &Json) -> String {
+	fn blocks(&self, data: MsgData) -> String {
 		return "TODO".to_string()
 	}
 
-	fn transaction(&self, block_json: &Json) -> String {
+	fn transaction(&self, data: MsgData) -> String {
 		return "TODO".to_string()
 	}
 
