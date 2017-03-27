@@ -3,9 +3,30 @@ extern crate serde_derive;
 extern crate serde_json;
 
 extern crate blockchain;
+#[macro_use]
+extern crate error_chain;
 
-use blockchain::blockchain::{Block, Blockchain, resolve};
+
+use blockchain::blockchain::{Block, Blockchain, is_valid_chain};
 use std::io;
+
+mod errors {
+	use serde_json;
+	error_chain! {
+        foreign_links {
+            SerdeJson(serde_json::Error);
+        }
+        errors {
+            InvalidCommand(c: String) {
+                description("invalid command")
+                display("invalid command {}", c)
+            }
+        }
+    }
+}
+
+use errors::*;
+
 
 #[derive(Serialize, Deserialize, Debug)]
 enum MsgData {
@@ -19,55 +40,65 @@ struct MsgStruct {
 	data: Option<MsgData>,
 }
 
-struct Node<'b> {
-	blockchain: &'b mut Blockchain
+struct Node {
+	blockchain: Blockchain,
 }
 
-impl<'a> Node<'a> {
-	fn handle (&self, msg: MsgStruct) {
+impl Node {
+	fn handle(&mut self, msg: MsgStruct) {
 		match msg.cmd.as_ref() {
 			"get_blocks" => send(self.get_blocks()),
-			"blocks" => send(self.blocks(msg.data.unwrap())),
-			"transaction" => send(self.transaction(msg.data.unwrap())),
-			_ => send("error".to_string())
-		}
-	}
-
-	fn blocks(&self, data: MsgData) -> String {
-		match data {
-			MsgData::Transaction(_) => "need a new blockchain with cmd \"blocks\"".to_string(),
-			MsgData::Blockchain(blocks) => {
-				let new_blocks = resolve(self.blockchain, blocks);
-				self.blockchain = &mut *new_blocks;
-				return serde_json::to_string(self.blockchain).unwrap();
+			"blocks" => {
+				self.blocks(msg.data.unwrap());
+				send(self.get_blocks());
 			}
+			"transaction" => send(self.transaction(msg.data.unwrap())),
+			other => send(Err(ErrorKind::InvalidCommand(other.to_string()).into())),
 		}
 	}
 
-	fn transaction(&self, data: MsgData) -> String {
-		return "TODO".to_string()
+	/// Updates the blockchain if a longer one is found, returns true if a swap was made
+	///
+	/// Call Node::get_blocks to retrieve the blockchain
+	fn blocks(&mut self, data: MsgData) -> Result<bool> {
+		let blocks = match data {
+			MsgData::Transaction(_) => bail!("need a new blockchain with cmd \"blocks\""),
+			MsgData::Blockchain(blocks) => blocks,
+		};
+		// let new_blocks = resolve(self.blockchain, &mut blocks);
+		if self.blockchain.len() < blocks.len() && is_valid_chain(&blocks) {
+			self.blockchain = blocks;
+			Ok(true)
+		} else {
+			Ok(false)
+		}
 	}
 
-	fn get_blocks(&self) -> String {
-		return serde_json::to_string(&self.blockchain).unwrap();
+	fn transaction(&self, data: MsgData) -> Result<String> {
+		unimplemented!()
+	}
+
+	fn get_blocks(&self) -> Result<String> {
+		serde_json::to_string(&self.blockchain).map_err(|e| e.into())
 	}
 }
 
-fn send(msg: String) {
-	println!("{}", msg)
-}	
+fn send(msg: Result<String>) {
+	match msg {
+		Ok(msg) => println!("{}", msg),
+		Err(e) => println!("{}", e),
+	}
+}
 
 fn main() {
-	let blocks = & mut vec![Block {
-		id: 0,
-		prev_hash: 0,
-		data: "I'm awake!".to_string(),
-	}];
+	let blocks = vec![Block {
+		                  id: 0,
+		                  prev_hash: 0,
+		                  data: "I'm awake!".to_string(),
+	                  }];
 
-	let node = Node {
-		blockchain: blocks,
-	};
-	
+	let mut node = Node { blockchain: blocks };
+
 	loop {
 		let mut buffer = String::new();
 		match io::stdin().read_line(&mut buffer) {
@@ -78,8 +109,11 @@ fn main() {
 		}
 		let data = match serde_json::from_str(buffer.as_str()) {
 			Ok(val) => node.handle(val),
-			Err(error) => println!("msg should take the form {{\"cmd\": \"blocks|transaction|get_blocks\", \"data\": <data>}}")
+			Err(_) => {
+				println!("msg should take the form {{\"cmd\": \"blocks|transaction|get_blocks\", \
+				          \"data\": <data>}}")
+			}
 		};
-		
+
 	}
 }
