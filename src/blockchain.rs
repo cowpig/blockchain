@@ -10,6 +10,12 @@ pub struct Block {
 
 pub type Blockchain = Vec<Block>;
 
+pub fn get_hash<T: Hash>(t: &T) -> u64 {
+    let mut s = DefaultHasher::new();
+    t.hash(&mut s);
+    return s.finish()
+}
+
 impl Hash for Block {
 	fn hash<H:Hasher>(&self, state:&mut H) {
 		self.id.hash(state);
@@ -18,28 +24,24 @@ impl Hash for Block {
 	}
 }
 
-pub fn hash<T: Hash>(t: &T) -> u64 {
-    let mut s = DefaultHasher::new();
-    t.hash(&mut s);
-    return s.finish()
-}
-
-pub fn next_block(prev_block: & Block, data: String) -> Block {
-	return Block {
-		id: prev_block.id + 1,
-		prev_hash: hash(prev_block),
-		data: data,
+impl Block {
+	fn next_block(&self, data: String) -> Block {
+		return Block {
+			id: self.id + 1,
+			prev_hash: get_hash(self),
+			data: data,
+		}
 	}
-}
 
-pub fn is_valid_block(prev_block: & Block, new_block: & Block) -> bool {
-	return prev_block.id + 1 == new_block.id && hash(prev_block) == new_block.prev_hash;
+	fn is_valid_next(&self, new_block: & Block) -> bool {
+		return self.id + 1 == new_block.id && get_hash(self) == new_block.prev_hash;
+	}
 }
 
 pub fn is_valid_chain(chain: & Blockchain) -> bool{
 	let mut prev = &chain[0];
 	for block in chain[1..].iter() {
-		if !is_valid_block(prev, block) {
+		if !prev.is_valid_next(block) {
 			return false
 		}
 		prev = block;
@@ -47,9 +49,6 @@ pub fn is_valid_chain(chain: & Blockchain) -> bool{
 	return true
 }
 
-pub fn resolve<'a>(curr_chain: &'a Blockchain, new_chain: &'a Blockchain) -> &'a Blockchain {
-	if curr_chain.len() < new_chain.len() && is_valid_chain(new_chain) {
-		return new_chain;
-	}
-	return curr_chain;
+pub fn replaces(curr_chain: & Blockchain, new_chain: & Blockchain) -> bool {
+	return (curr_chain.len() < new_chain.len()) && is_valid_chain(new_chain)
 }

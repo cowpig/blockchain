@@ -4,7 +4,7 @@ extern crate serde_json;
 
 extern crate blockchain;
 
-use blockchain::blockchain::{Block, Blockchain, resolve};
+use blockchain::blockchain::{Block, Blockchain, replaces};
 use std::io;
 
 #[derive(Serialize, Deserialize, Debug)]
@@ -37,8 +37,9 @@ impl Node {
 		match data {
 			MsgData::Transaction(_) => "need a new blockchain with cmd \"blocks\"".to_string(),
 			MsgData::Blockchain(blocks) => {
-				let new_blocks = resolve(&self.blockchain, &blocks);
-				self.blockchain = *new_blocks;
+				if replaces(&self.blockchain, &blocks) {
+					self.blockchain = blocks;
+				}
 				return serde_json::to_string(&self.blockchain).unwrap();
 			}
 		}
@@ -51,6 +52,7 @@ impl Node {
 	fn get_blocks(&self) -> String {
 		return serde_json::to_string(&self.blockchain).unwrap();
 	}
+
 }
 
 fn send(msg: String) {
@@ -58,14 +60,13 @@ fn send(msg: String) {
 }	
 
 fn main() {
-	let blocks = vec![Block {
-		id: 0,
-		prev_hash: 0,
-		data: "I'm awake!".to_string(),
-	}];
 
 	let mut node = Node {
-		blockchain: blocks,
+		blockchain: vec![Block {
+			id: 0,
+			prev_hash: 0,
+			data: "I'm awake!".to_string(),
+		}]
 	};
 	
 	loop {
@@ -76,7 +77,7 @@ fn main() {
 			}
 			Err(error) => println!("error: {}", error),
 		}
-		let data = match serde_json::from_str(buffer.as_str()) {
+		match serde_json::from_str(buffer.as_str()) {
 			Ok(val) => node.handle(val),
 			Err(error) => println!("msg should take the form {{\"cmd\": \"blocks|transaction|get_blocks\", \"data\": <data>}}")
 		};
