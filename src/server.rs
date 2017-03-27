@@ -19,12 +19,12 @@ struct MsgStruct {
 	data: Option<MsgData>,
 }
 
-struct Node<'b> {
-	blockchain: &'b mut Blockchain
+struct Node {
+	blockchain: Blockchain
 }
 
-impl<'a> Node<'a> {
-	fn handle (&self, msg: MsgStruct) {
+impl Node {
+	fn handle (&mut self, msg: MsgStruct) {
 		match msg.cmd.as_ref() {
 			"get_blocks" => send(self.get_blocks()),
 			"blocks" => send(self.blocks(msg.data.unwrap())),
@@ -33,13 +33,13 @@ impl<'a> Node<'a> {
 		}
 	}
 
-	fn blocks(&self, data: MsgData) -> String {
+	fn blocks(&mut self, data: MsgData) -> String {
 		match data {
 			MsgData::Transaction(_) => "need a new blockchain with cmd \"blocks\"".to_string(),
 			MsgData::Blockchain(blocks) => {
-				let new_blocks = resolve(self.blockchain, blocks);
-				self.blockchain = &mut *new_blocks;
-				return serde_json::to_string(self.blockchain).unwrap();
+				let new_blocks = resolve(&self.blockchain, &blocks);
+				self.blockchain = *new_blocks;
+				return serde_json::to_string(&self.blockchain).unwrap();
 			}
 		}
 	}
@@ -58,13 +58,13 @@ fn send(msg: String) {
 }	
 
 fn main() {
-	let blocks = & mut vec![Block {
+	let blocks = vec![Block {
 		id: 0,
 		prev_hash: 0,
 		data: "I'm awake!".to_string(),
 	}];
 
-	let node = Node {
+	let mut node = Node {
 		blockchain: blocks,
 	};
 	
