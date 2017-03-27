@@ -7,6 +7,7 @@ authors = ["Max <max@recoset.com>"]
 serde = "0.9"
 serde_json = "0.9"
 serde_derive = "0.9"
+error-chain = { version = "0.10.0", default-features = false }
 
 [[bin]]
 name = "server"
