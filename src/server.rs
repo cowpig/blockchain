@@ -8,6 +8,7 @@ use blockchain::blockchain::{Block, Blockchain, replaces};
 use std::io;
 
 #[derive(Serialize, Deserialize, Debug)]
+#[serde(untagged)]
 enum MsgData {
 	Transaction(String),
 	Blockchain(Blockchain),
@@ -29,7 +30,7 @@ impl Node {
 			"get_blocks" => send(self.get_blocks()),
 			"blocks" => send(self.blocks(msg.data.unwrap())),
 			"transaction" => send(self.transaction(msg.data.unwrap())),
-			_ => send("error".to_string())
+			_ => send("error: unknown cmd".to_string())
 		}
 	}
 
@@ -45,8 +46,16 @@ impl Node {
 		}
 	}
 
-	fn transaction(&self, data: MsgData) -> String {
-		return "TODO".to_string()
+	fn transaction(&mut self, data: MsgData) -> String {
+		match data {
+			MsgData::Blockchain(_) => "Transaction should be a string".to_string(),
+			MsgData::Transaction(t) => {
+				let prev_block = self.blockchain.last().unwrap().clone();
+				let next_block = prev_block.next_block(t);
+				self.blockchain.push(next_block);
+				return serde_json::to_string(&self.blockchain).unwrap();
+			}
+		}
 	}
 
 	fn get_blocks(&self) -> String {
@@ -60,7 +69,6 @@ fn send(msg: String) {
 }	
 
 fn main() {
-
 	let mut node = Node {
 		blockchain: vec![Block {
 			id: 0,
@@ -79,8 +87,10 @@ fn main() {
 		}
 		match serde_json::from_str(buffer.as_str()) {
 			Ok(val) => node.handle(val),
-			Err(error) => println!("msg should take the form {{\"cmd\": \"blocks|transaction|get_blocks\", \"data\": <data>}}")
+			Err(error) => {
+				println!("{:?}", error);
+				println!("msg should take the form {{\"cmd\": \"blocks|transaction|get_blocks\", \"data\": <data>}}");
+			}
 		};
-		
 	}
 }

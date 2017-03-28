@@ -25,7 +25,7 @@ impl Hash for Block {
 }
 
 impl Block {
-	fn next_block(&self, data: String) -> Block {
+	pub fn next_block(&self, data: String) -> Block {
 		return Block {
 			id: self.id + 1,
 			prev_hash: get_hash(self),
@@ -33,7 +33,7 @@ impl Block {
 		}
 	}
 
-	fn is_valid_next(&self, new_block: & Block) -> bool {
+	pub fn is_valid_next(&self, new_block: & Block) -> bool {
 		return self.id + 1 == new_block.id && get_hash(self) == new_block.prev_hash;
 	}
 }
