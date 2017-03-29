@@ -1,6 +1,6 @@
 extern crate blockchain;
 
-use blockchain::blockchain::{Block, next_block, is_valid_block, is_valid_chain, resolve};
+use blockchain::blockchain::{Block, is_valid_chain, replaces};
 
 #[test]
 fn test_blockchain() {
@@ -10,16 +10,16 @@ fn test_blockchain() {
 		data: "I'm awake!".to_string(),
 	}];
 
-	// this is necessary because rust 
-	let mut next = next_block(blocks.last().unwrap(), "stop.".to_string());
+	// this is necessary because rust
+	let next = blocks[0].next_block("stop.".to_string());
+	let next2 = next.next_block("hammertime.".to_string());
 	blocks.push(next);
-	next = next_block(blocks.last().unwrap(), "hammertime.".to_string());
-	blocks.push(next);
+	blocks.push(next2);
 
 	// println!("{:?}", blocks[0]);
 	for bs in blocks[..blocks.len() - 1].iter().zip(blocks[1..].iter()) {
 		let (b1, b2) = bs;
-		assert!(is_valid_block(b1, b2));
+		assert!(b1.is_valid_next(b2));
 		// println!("{:?} valid? {:?}", b2, is_valid_block(b1, b2));
 	}
 	assert!(is_valid_chain(&blocks));
@@ -27,5 +27,5 @@ fn test_blockchain() {
 
 	assert_eq!(blocks[0], blocks[0].clone());
 
-	assert_eq!(blocks, *resolve(& blocks, & blocks[..2].to_vec()));
+	assert_eq!(false, replaces(& blocks, & blocks[..2].to_vec()));
 }
