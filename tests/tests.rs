@@ -1,6 +1,7 @@
 extern crate blockchain;
 
 use blockchain::blockchain::{Block, is_valid_chain, replaces};
+use blockchain::wordvote::{hash};
 
 #[test]
 fn test_blockchain() {
@@ -28,4 +29,15 @@ fn test_blockchain() {
 	assert_eq!(blocks[0], blocks[0].clone());
 
 	assert_eq!(false, replaces(& blocks, & blocks[..2].to_vec()));
+}
+
+
+#[test]
+fn test_wordvote() {
+	let hex = hash("hello world");
+	assert_eq!(hex,
+		   concat!("309ecc489c12d6eb4cc40f50c902f2b4",
+				   "d0ed77ee511a7c7a9bcd3ca86d4cd86f",
+				   "989dd35bc5ff499670da34255b45b0cf",
+				   "d830e81f605dcf7dc5542e93ae9cd76f"));
 }
