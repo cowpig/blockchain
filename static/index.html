@@ -1,0 +1,92 @@
+<div style="width: 80%;margin:auto;float:none;text-align:center">
+
+<h1>You are node <span id="pid">___</span></h1>
+<hr/>
+
+<button id="mine">Mine</button>
+<button id="start">Start</button>
+<button id="pause">Pause</button>
+<button id="fork">Fork</button>
+
+<br/><br/>
+
+<textarea id="input" style="height: 30px;width: 90%; max-width: 400px;"></textarea><br/>
+<button id="submit">Send JSON</button><br/>
+<br/><br/>
+<pre id="socket-text" style="max-width: 300px;width:90%;text-align:left; margin: auto; float: none">
+</pre>
+
+<script>
+    var pid = document.getElementById('pid');
+    var submit_btn = document.getElementById('submit');
+    var input = document.getElementById('input');
+    var socket_log = document.getElementById('socket-text');
+
+    var fork = document.getElementById('fork');
+    var start = document.getElementById('start');
+    var pause = document.getElementById('pause');
+    var mine = document.getElementById('mine');
+
+    fork.addEventListener('click', function(event) {
+        window.nodesend(JSON.stringify({cmd: 'fork', 'args': ''}));
+    });
+    mine.addEventListener('click', function(event) {
+        window.nodesend(JSON.stringify({cmd: 'mine', 'args': ''}));
+    });
+    start.addEventListener('click', function(event) {
+        window.nodesend(JSON.stringify({cmd: 'start', 'args': ''}));
+    });
+    pause.addEventListener('click', function(event) {
+        window.nodesend(JSON.stringify({cmd: 'pause', 'args': ''}));
+    });
+
+    window.nodesend = function(val) {
+        val = val.trim();
+        socket_log.innerHTML += '[<] ' + val + '<br/>';
+        console.log('[<] ' + val);
+        window.socket.send(val);
+    }
+
+    window.noderecv = function(val) {
+        console.log('[>] ' + val);
+        var msg = JSON.parse(val);
+
+        var line = '[>] ';
+
+        if (msg.name) {
+            pid.innerHTML = msg.name + ' (pid ' + msg.pid + ')';
+            line += val;
+        }
+        if (msg.out) {
+            line += msg.out;
+        }
+        if (msg.errors) {
+            line += '<span style="color:red">' + msg.errors + '</span>';
+        }
+        socket_log.innerHTML += line + '<br/>';
+    }
+
+
+    window.socket = new WebSocket("ws://localhost:8080/websocket");
+    window.socket.onopen = function() {
+        window.nodesend(JSON.stringify({cmd: 'start', args: ''}));
+    }
+    window.socket.onmessage = function(event) {
+        window.noderecv(event.data);
+    }
+
+    input.addEventListener('keyup', function(event) {
+        if (event.keyCode == 13) {
+            window.nodesend(input.value);
+            input.value = '';
+            event.preventDefault();
+            event.stopPropagation();
+        }
+    })
+    submit_btn.addEventListener('click', function(event) {
+        window.nodesend(input.value);
+        input.value = '';
+    });
+</script>
+
+</div>
