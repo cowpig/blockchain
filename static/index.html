@@ -1,0 +1,154 @@
+<html>
+    <head>
+        <title>Blockchain Madness</title>
+
+        <link rel="stylesheet" href="/static/bootstrap.min.css">
+        <script src="https://code.jquery.com/jquery-3.1.1.slim.min.js" integrity="sha384-A7FZj7v+d/sdmMqp/nOQwliLvUsJfDHW+k9Omg/a/EheAdgtzNs3hpfag6Ed950n" crossorigin="anonymous"></script>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/tether/1.4.0/js/tether.min.js" integrity="sha384-DztdAPBWPRXSA/3eYEEUWrWCy7G5KFbe8fFjk5JAIxUYHKkDx6Qin1DkWx51bBrb" crossorigin="anonymous"></script>
+        <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0-alpha.6/js/bootstrap.min.js" integrity="sha384-vBWWzlZJ8ea9aCX4pEW3rVHjgjt7zpkNpZk+02D9phzyeVkE+jo0ieGizqPLForn" crossorigin="anonymous"></script>
+    </head>
+
+    <body id="main">
+
+<div style="width: 80%;margin:auto;float:none;text-align:center; position: absolute; top: 0; z-index: 10;left: 10%;">
+
+
+<img src="https://cdn2.macworld.co.uk/cmsdata/features/3531545/happy-Mac-original.jpg" style="margin-top: 3vh;width: 100px;text-align: center"/>
+
+
+<h1><b>Storycoin</b>: You are node <span id="pid">___</span></h1>
+<hr/>
+
+<ol style="text-align: left; display: block; margin: auto; float: none; width: 90%; max-width: 550px;">
+    <li>Choose your favorite word to continue the story</li>
+    <li>Click to vote by mining for that word using your browser's hashing power</li>
+    <li>Every 15 seconds, the most popular word is chosen, and the story continues!</li>
+</ol>
+
+<hr/>
+
+<h2>Story</h2>
+<pre style="width: 95%; max-width: 600px;height: auto; overflow-y:scroll; display: block; float: none; margin: auto;">
+    <span id="story">There once was a goat named</span> <span style="color: green">_______</span>
+</pre><br/>
+
+<div>
+    <span id="words">
+        <button onclick="vote('Goaty McGoatface')">Goaty McGoatface</button>
+        <button onclick="vote('Motherboard Theresa')">Motherboard Theresa</button>
+        <button onclick="vote('John Coltrane')">John Coltrane</button>
+        <button onclick="vote('hippo')">hippo</button>
+    </span>
+    <form style="display: inline;">
+    <input type="text" placeholder="Propose word..." pattern="[^ ]" id="propose"/>
+    </form>
+</div>
+
+<br/><br/>
+
+<div style="color: red" title="Chosen word">[<span style="color: black" id="chosen">-</span>]</div>
+<div id="currenthash">-</div>
+<br/><br/>
+
+<pre id="socket-log" style="max-width: 300px;width:90%;text-align:left; margin: auto; float: none">
+</pre>
+
+<script>
+    var E = function(arg) {return document.getElementById(arg)};
+
+    E('propose').addEventListener('keyup', function(event) {
+        // if enter
+        if (event.keyCode == 13) {
+
+
+            window.nodesend(E('propose').value);
+            E('propose').value = '';
+            event.preventDefault();
+            event.stopPropagation();
+        }
+    });
+
+    function vote(word) {
+        E('chosen').innerHTML = word;
+        var matches = [];
+        var i = 0;
+        var chunksize = 100;
+
+        var minechunk = function() {
+            for (var b=0; b < chunksize; b++) {
+                if (valid_hash(window.data, i)) {
+                    matches.push(i);
+                    window.nodesend(JSON.stringify({cmd: 'found_nonce', 'args': i}));
+                }
+                i += 1;
+            }
+        }
+        var mine = function() {
+            minechunk();
+            E('currenthash').innerHTML = window.lasthash;
+            if (i < 50000) {
+                window.requestAnimationFrame(mine);
+            } else {
+                console.timeEnd('t');
+            }
+        };
+        console.time('t');
+        mine();
+    };
+
+    window.nodesend = function(val) {
+        val = val.trim();
+        E('socket-log').innerHTML += '[<] ' + val + '<br/>';
+        console.log('[<] ' + val);
+        window.socket.send(val);
+    }
+
+    window.noderecv = function(val) {
+        console.log('[>] ' + val);
+        var msg = JSON.parse(val);
+
+        var line = '[>] ';
+
+        if (msg.votechain) {
+            E('words').innerHTML = '';
+            msg.votechain.map(function({word, votes}) {
+                E('words').innerHTML += '<button onclick="vote(\'' + word + '\')">' + word + '</button>';
+            });
+        }
+        if (msg.name) {
+            E('pid').innerHTML = msg.name + ' (pid ' + msg.pid + ')';
+            line += val;
+        }
+        if (msg.out) {
+            line += msg.out;
+        }
+        if (msg.errors) {
+            line += '<span style="color:red">' + msg.errors + '</span>';
+        }
+        E('socket-log').innerHTML += line + '<br/>';
+    }
+
+
+    window.socket = new WebSocket("ws://localhost:8080/websocket");
+    window.socket.onopen = function() {
+        function init() {
+            window.nodesend(JSON.stringify({cmd: 'get_votes', args: ''}));
+            window.nodesend(JSON.stringify({cmd: 'get_story', args: ''}));
+        }
+        setTimeout(init, 1000);
+    }
+    window.socket.onmessage = function(event) {
+        window.noderecv(event.data);
+    }
+</script>
+
+</div>
+
+    <script src="/static/js/mining.js"></script>
+
+    <canvas id="demo-canvas" style="position: absolute; z-index: 0;top:0; left: 0;"></canvas>
+    <script src="/static/js/TweenLite.min.js"></script>
+    <script src="/static/js/EasePack.min.js"></script>
+    <script src="/static/js/background.js"></script>
+</body>
+</html>

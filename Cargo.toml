@@ -1,7 +1,7 @@
 [package]
 name = "blockchain"
 version = "0.1.0"
-authors = ["Max <max@recoset.com>"]
+authors = ["Max <max@recoset.com>", "Nick <git@nicksweeting.com>"]
 
 [dependencies]
 serde = "0.9"
@@ -9,6 +9,8 @@ serde_json = "0.9"
 serde_derive = "0.9"
 rust-crypto = "^0.2"
 rand = "0.3"
+redis = "0.5.3"
+nix = "0.8.0"
 
 [[bin]]
 name = "server"

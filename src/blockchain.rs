@@ -28,7 +28,7 @@ impl Block {
 	}
 }
 
-#[derive(Debug, Eq, PartialEq, Clone, Serialize, Deserialize, Hash)]	 
+#[derive(Debug, Eq, PartialEq, Clone, Serialize, Deserialize, Hash)]
 pub struct Blockchain {
 	pub blocks: Vec<Block>
 }
