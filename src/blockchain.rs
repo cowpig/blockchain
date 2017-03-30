@@ -1,11 +1,13 @@
 use std::hash::{Hash, Hasher};
 use std::collections::hash_map::DefaultHasher;
 
+use wordvote::{WordVote};
+
 #[derive(Debug, Eq, PartialEq, Clone, Serialize, Deserialize)]
 pub struct Block {
 	pub id: u64,
 	pub prev_hash: u64,
-	pub data: String,
+	pub data: Vec<WordVote>,
 }
 
 pub type Blockchain = Vec<Block>;

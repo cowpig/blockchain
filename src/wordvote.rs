@@ -3,19 +3,7 @@ extern crate crypto;
 use self::crypto::digest::Digest;
 use self::crypto::sha2::Sha512;
 
-pub fn hash_string(s: String) -> String {
-	let mut hasher = Sha512::new();
-	hasher.input_str(s.as_ref());
-	return hasher.result_str();
-}
-
-pub fn hash_bytes<'a>(s: String) -> [u8; 64] {
-	let mut hasher = Sha512::new();
-	hasher.input_str(s.as_ref());
-	let output: &mut [u8; 64] = &mut [0; 64];
-	hasher.result(output);
-	return *output;
-}
+use hash_utils::{hash_string, hash_bytes};
 
 #[derive(Serialize, Deserialize, Debug)]
 pub struct Vote {
@@ -54,6 +42,9 @@ impl WordVote {
 	fn is_valid(&self, n_bytes: usize, max_remainder: u8) -> bool {
 		if self.votes.len() > 0 {
 			return true
+		}
+		if self.votes[0].last_hash != hash_string(self.word) {
+			return false
 		}
 		if !self.votes[0].is_valid_nonce(n_bytes, max_remainder) {
 			return false
