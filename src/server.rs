@@ -36,7 +36,7 @@ struct Node {
 impl Node {
 	fn response(&mut self, msg: MsgStruct) -> String {
 		match msg.cmd.as_ref() {
-			// "get_story" => self.story(),
+			"get_story" => self.get_story(),
 			"get_blocks" => self.get_blocks(),
 			"get_votes" => self.get_votes(),
 			"set_blocks" => match msg.data.unwrap() {
@@ -51,13 +51,13 @@ impl Node {
 		}
 	}
 
-	// fn get_story(&self) -> String {
-	// 	let mut story = "";
-	// 	for block in self.blockchain {
-	// 		story += &block.data.word;
-	// 	}
-	// 	return *story;
-	// }
+	fn get_story(&self) -> String {
+		let mut story = "".to_string();
+		for block in self.blockchain.blocks.iter() {
+			story += &block.data.word;
+		}
+		return story;
+	}
 
 	fn get_blocks(&self) -> String {
 		return serde_json::to_string(&self.blockchain).unwrap();
