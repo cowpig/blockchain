@@ -82,9 +82,9 @@ impl Node {
 		if self.blockchain.replaced_by(&blocks) {
 			self.blockchain = blocks;
 			self.current_votes = HashMap::new();
-			return "accept".to_string()
+			return self.get_blocks();
 		}
-		return "reject".to_string()
+		return "\"reject\"".to_string()
 	}
 
 	fn get_votes(&self) -> String {
@@ -93,21 +93,21 @@ impl Node {
 
 	fn set_votes(&mut self, vc: VoteChain) -> String {
 		if !self.is_valid_votechain(&vc) {
-			return "invalid".to_string();
+			return "\"invalid\"".to_string();
 		}
 
 		let word = vc.word.clone();
 		match self.current_votes.entry(word) {
 			Entry::Occupied(ref curr_vc) if !curr_vc.get().replaced_by(&vc, self.n_bytes, self.max_remainder) => {
-				return "reject".to_string();
+				return "\"reject\"".to_string();
 			},
 			Entry::Occupied(mut entry) => {
 				entry.insert(vc);
-				return "accept votes".to_string();
+				return self.get_votes();
 			},
 			Entry::Vacant(entry) => {
 				entry.insert(vc);
-				return "accept votes".to_string();
+				return self.get_votes();
 			}
 		}
 	}
@@ -199,12 +199,6 @@ fn main() {
 					Err(_) => "{\"errors\": \"msg should take the form {cmd: [get|send]_[votes|blocks], data: <Blocks|Votes>\"}".to_string(),
 				};
 
-				if result == "accept votes" {
-					result = node.get_votes();
-				}
-				if result == "accept" {
-					result = node.get_blocks();
-				}
 				println!("[OUT]: {}", result);
 				redis_push(&redisq, &send_key, result).unwrap();
 			}
