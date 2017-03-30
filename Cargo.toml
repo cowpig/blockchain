@@ -11,6 +11,7 @@ rust-crypto = "^0.2"
 rand = "0.3"
 redis = "0.5.3"
 nix = "0.8.0"
+time = "0.1"
 
 [[bin]]
 name = "server"

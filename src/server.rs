@@ -3,6 +3,7 @@ extern crate serde_derive;
 extern crate serde_json;
 extern crate nix;
 extern crate blockchain;
+extern crate time;
 
 use std::collections::hash_map::{HashMap, Entry};
 // use std::io;
@@ -10,6 +11,7 @@ use std::env;
 use std::thread::sleep;
 use std::time::{Duration};
 use nix::unistd::getpid;
+use time::{now};
 
 use blockchain::blockchain::{Block, Blockchain};
 use blockchain::wordvote::{VoteChain};
@@ -34,7 +36,11 @@ struct Node {
 
 	// parameters for PoW function
 	n_bytes: usize,
-	max_remainder: u8
+	max_remainder: u8,
+
+	seconds_per_vote: i64,
+
+	last_update: i64,
 }
 
 impl Node {
@@ -106,9 +112,7 @@ impl Node {
 	}
 
 	fn time_to_update(&self) -> bool {
-		// every n_seconds seconds return true
-		unimplemented!();
-		return false
+		return now().to_timespec().sec - self.seconds_per_vote > self.last_update;
 	}
 
 	fn choose_next_word(&mut self) {
@@ -150,6 +154,10 @@ fn main() {
 		current_votes: HashMap::new(),
 		n_bytes: 2,
 		max_remainder: 5,
+
+		seconds_per_vote: 15,
+
+		last_update: now().to_timespec().sec,
 	};
 
 	let args: Vec<String> = env::args().collect();
@@ -173,7 +181,12 @@ fn main() {
 	            sleep(Duration::new(3, 0));
 	        },
 	        Ok(ref val) if val == "" => {
-	            sleep(Duration::new(1, 0));
+	        	if node.time_to_update() {
+	        		node.choose_next_word();
+	        		redis_push(&redisq, &send_key, node.get_blocks());
+	        	} else {
+		            sleep(Duration::from_millis(100));
+		        }
 	        },
 	        Ok(input) => {
 	            println!("[IN]:  {}", input);
