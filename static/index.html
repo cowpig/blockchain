@@ -16,7 +16,7 @@
 <img src="https://cdn2.macworld.co.uk/cmsdata/features/3531545/happy-Mac-original.jpg" style="margin-top: 3vh;width: 100px;text-align: center"/>
 
 
-<h1><b>Storycoin</b>: You are node <span id="pid">___</span></h1>
+<h1><b>Storycoin</b>: You are node <span id="pid">{{name}}</span></h1>
 <hr/>
 
 <ol style="text-align: left; display: block; margin: auto; float: none; width: 90%; max-width: 550px;">
@@ -46,7 +46,7 @@
 
 <br/><br/>
 
-<div style="color: red" title="Chosen word">[<span style="color: black" id="chosen">-</span>]</div>
+<div style="color: red" title="Chosen word">Mining for: [<span style="color: black" id="chosen"><span style="color: grey"> <i>choose word above</i> </span></span>]</div>
 <div id="currenthash">-</div>
 <br/><br/>
 
@@ -59,9 +59,7 @@
     E('propose').addEventListener('keyup', function(event) {
         // if enter
         if (event.keyCode == 13) {
-
-
-            window.nodesend(E('propose').value);
+            vote(E('propose').value);
             E('propose').value = '';
             event.preventDefault();
             event.stopPropagation();
@@ -111,8 +109,10 @@
 
         if (msg.votechain) {
             E('words').innerHTML = '';
-            msg.votechain.map(function({word, votes}) {
-                E('words').innerHTML += '<button onclick="vote(\'' + word + '\')">' + word + '</button>';
+            msg.votechain.map(function(vote) {
+                var word = vote.word;
+                var votes = vote.votes;
+                E('words').innerHTML += '<button onclick="vote(\'' + word + '\')">' + word + '(' + votes.length + ')</button>';
             });
         }
         if (msg.name) {
@@ -128,8 +128,7 @@
         E('socket-log').innerHTML += line + '<br/>';
     }
 
-
-    window.socket = new WebSocket("ws://localhost:8080/websocket");
+    window.socket = new WebSocket("ws://" + document.location.hostname + "/websocket/{{name}}");
     window.socket.onopen = function() {
         function init() {
             window.nodesend(JSON.stringify({cmd: 'get_votes', args: ''}));
