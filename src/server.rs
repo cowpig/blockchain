@@ -43,21 +43,25 @@ struct Node {
 	// last_update: i64,
 }
 
+fn tag(s: String, tag: &str) -> String {
+	return "{ \"type\":\"".to_string() + tag + "\", \"data\": \"" + &s + "\"}";
+}
+
 impl Node {
 	fn response(&mut self, msg: MsgStruct) -> String {
 		match msg.cmd.as_ref() {
-			"choose_next_word" => self.choose_next_word(),
-			"get_story" => self.get_story(),
-			"get_blocks" => self.get_blocks(),
-			"get_votes" => self.get_votes(),
-			"set_blocks" => match msg.data.unwrap() {
+			"get_story" => tag(self.get_story(), "story"),
+			"choose_next_word" => tag(self.choose_next_word(), "blocks"),
+			"get_blocks" => tag(self.get_blocks(), "blocks"),
+			"get_votes" => tag(self.get_votes(), "votes"),
+			"set_blocks" => tag(match msg.data.unwrap() {
 				MsgData::Blockchain(_) => "need a votechain with cmd 'set_votes'".to_string(),
-				MsgData::VoteChain(vc) => self.set_votes(vc)
-			},
-			"set_votes" => match msg.data.unwrap() {
+				MsgData::VoteChain(vc) => self.set_votes(vc) 	
+			}, "blocks"),
+			"set_votes" => tag(match msg.data.unwrap() {
 				MsgData::VoteChain(_) => "need a new blockchain with cmd 'set_blocks'".to_string(),
 				MsgData::Blockchain(blocks) => self.set_blocks(blocks)
-			},
+			}, "votes"),
 			_ => "error: unknown cmd".to_string()
 		}
 	}
@@ -114,7 +118,7 @@ impl Node {
 
 	fn choose_next_word(&mut self) -> String {
 		if self.current_votes.keys().len() < 1 {
-			return "need_votes".to_string();
+			return "no votes".to_string();
 		}
 
 		let mut next_word = "".to_string();
@@ -157,6 +161,7 @@ fn main() {
 		// seconds_per_vote: 15,
 
 		// last_update: now().to_timespec().sec,
+
 	};
 
 	// let args: Vec<String> = env::args().collect();
