@@ -16,28 +16,31 @@ g=h[0],n=h[1],b=h[2],d=h[3],c=h[4],j=h[5],l=h[6],h=h[7],q=g.high,m=g.low,r=n.hig
 0?1:0),k=k+C,A=A+Y+(k>>>0<C>>>0?1:0),k=k+ea,A=A+ia+(k>>>0<ea>>>0?1:0),k=k+e,A=A+u+(k>>>0<e>>>0?1:0),e=D+ha,B=z+B+(e>>>0<D>>>0?1:0),X=V,M=L,V=U,L=K,U=w,K=t,t=J+k|0,w=W+A+(t>>>0<J>>>0?1:0)|0,W=I,J=F,I=H,F=E,H=v,E=s,s=k+e|0,v=A+B+(s>>>0<k>>>0?1:0)|0}m=g.low=m+s;g.high=q+v+(m>>>0<s>>>0?1:0);N=n.low=N+E;n.high=r+H+(N>>>0<E>>>0?1:0);O=b.low=O+F;b.high=Z+I+(O>>>0<F>>>0?1:0);P=d.low=P+J;d.high=$+W+(P>>>0<J>>>0?1:0);Q=c.low=Q+t;c.high=aa+w+(Q>>>0<t>>>0?1:0);R=j.low=R+K;j.high=ba+U+(R>>>0<K>>>0?1:0);S=l.low=
 S+L;l.high=ca+V+(S>>>0<L>>>0?1:0);T=h.low=T+M;h.high=da+X+(T>>>0<M>>>0?1:0)},_doFinalize:function(){var a=this._data,f=a.words,h=8*this._nDataBytes,g=8*a.sigBytes;f[g>>>5]|=128<<24-g%32;f[(g+128>>>10<<5)+30]=Math.floor(h/4294967296);f[(g+128>>>10<<5)+31]=h;a.sigBytes=4*f.length;this._process();return this._hash.toX32()},clone:function(){var a=r.clone.call(this);a._hash=this._hash.clone();return a},blockSize:32});m.SHA512=r._createHelper(f);m.HmacSHA512=r._createHmacHelper(f)})();
 
-var valid_hash = function(data, nonce, exponent, lessthan) {
-	if (exponent === undefined) {
-		exponent = 4;
-	}
-	if (lessthan === undefined) {
-		lessthan = 5;
-	}
-	return CryptoJS.SHA512(data + nonce).toString().slice(0, exponent) < lessthan;
+function valid_hash(data, nonce, exponent, lessthan) {
+    if (exponent === undefined) {
+        exponent = 4;
+    }
+    if (lessthan === undefined) {
+        lessthan = 5;
+    }
+
+    window.lasthash = CryptoJS.SHA512(data + nonce).toString();
+    return window.lasthash.slice(0, exponent) < lessthan;
 };
 
-var get_probability = function(exponent, lessthan) {
-	return 16 ** exponent / lessthan;
+function get_probability(exponent, lessthan) {
+    //not implemented
+    // return 16 ** exponent / lessthan;
 }
 
-var data = "1234123141241231231231241243123";
-console.time('t');
-var matches = [];
-for (var i=0; i < 100000; i++) {
-	if valid_hash(data, i) {
-		matches.append(i);
-	}
-}
-console.timeEnd('t');
-console.log(i, "iterations", matches.length, "matches");
-console.log(matches);
+window.data = "1234123141241231231231241243123";
+// console.time('t');
+// var matches = [];
+// for (var i=0; i < 100000; i++) {
+//     if (valid_hash(data, i)) {
+//         matches.push(i);
+//     }
+// }
+// console.timeEnd('t');
+// console.log(i, "iterations", matches.length, "matches");
+// console.log(matches);

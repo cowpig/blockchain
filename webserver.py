@@ -12,7 +12,7 @@ from geventwebsocket.handler import WebSocketHandler
 
 app = Bottle()
 HOST, PORT = ("0.0.0.0", 8080)
-NODE_BINARY = '/Users/squash/Documents/Code/rust-blockchain/target/debug/blockchain'
+NODE_BINARY = 'target/debug/server'
 
 
 @app.route('/')

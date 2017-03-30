@@ -1,15 +1,19 @@
 #[macro_use]
 extern crate serde_derive;
 extern crate serde_json;
-
+extern crate nix;
 extern crate blockchain;
 
 use std::collections::hash_map::{HashMap, Entry};
-use std::io;
+// use std::io;
+use std::env;
+use std::thread::sleep;
+use std::time::{Duration};
+use nix::unistd::getpid;
 
 use blockchain::blockchain::{Block, Blockchain};
 use blockchain::wordvote::{VoteChain};
-
+use blockchain::io_queue::{get_redisconn, redis_pop, redis_push};
 
 #[derive(Serialize, Deserialize, Debug)]
 #[serde(untagged)]
@@ -27,9 +31,9 @@ struct MsgStruct {
 struct Node {
 	blockchain: Blockchain,
 	current_votes: HashMap<String, VoteChain>,
-	
+
 	// parameters for PoW function
-	n_bytes: usize, 
+	n_bytes: usize,
 	max_remainder: u8
 }
 
@@ -100,22 +104,22 @@ impl Node {
 		return votechain.is_valid(self.n_bytes, self.max_remainder);
 	}
 
-	fn time_to_update(&self) -> bool {
-		// every n_seconds seconds return true
-		unimplemented!();
-		return false
-	}
+	// fn time_to_update(&self) -> bool {
+	// 	// every n_seconds seconds return true
+	// 	unimplemented!();
+	// 	return false;
+	// }
 
-	fn update(&self) {
-		// choose the votechain with the most votes
-		// broadcast it
-		unimplemented!();
-	}
+	// fn update(&self) {
+	// 	// choose the votechain with the most votes
+	// 	// broadcast it
+	// 	unimplemented!();
+	// }
 }
 
-fn send(msg: String) {
-	println!("{}", msg);
-}	
+// fn send(msg: String) {
+// 	println!("{}", msg);
+// }
 
 fn main() {
 	let mut node = Node {
@@ -133,21 +137,54 @@ fn main() {
 		n_bytes: 2,
 		max_remainder: 5,
 	};
-	
+
+	// loop {
+	// 	let mut buffer = String::new();
+	// 	match io::stdin().read_line(&mut buffer) {
+	// 		Ok(_) => (),
+	// 		Err(error) => send(format!("error: {}", error)),
+	// 	}
+	// 	match serde_json::from_str(buffer.as_str()) {
+	// 		Ok(val) => send(node.response(val)),
+	// 		Err(error) => {
+	// 			send(format!("{:?}", error));
+	// 			send("msg should take the form {{\"cmd\": \"[get|send]_[votes|blocks]\", \"data\": <Blocks|Votes>}}".to_string());
+	// 		}
+	// 	};
+	// }
+
+	let args: Vec<String> = env::args().collect();
+    let name = if args.len() > 1 {
+        args[1].clone()
+    } else {
+        getpid().to_string()
+    };
+
+	let redisq = get_redisconn().unwrap();
+    let recv_key = format!("node-{pid}-recv", pid=name);
+    let send_key = format!("node-{pid}-send", pid=name);
+
+    println!("Listening on redis://127.0.0.1/0 keys:{} & {}", recv_key, send_key);
+
+	redis_push(&redisq, &send_key, "{\"cmd\":\"start\",\"args\":\"\"}".to_string()).unwrap();
 	loop {
-		let mut buffer = String::new();
-		match io::stdin().read_line(&mut buffer) {
-			Ok(n) => {
-				send(format!("{} bytes read", n));
-			}
-			Err(error) => send(format!("error: {}", error)),
-		}
-		match serde_json::from_str(buffer.as_str()) {
-			Ok(val) => send(node.response(val)),
-			Err(error) => {
-				send(format!("{:?}", error));
-				send("msg should take the form {{\"cmd\": \"[get|send]_[votes|blocks]\", \"data\": <Blocks|Votes>}}".to_string());
-			}
-		};
+	    match redis_pop(&redisq, &recv_key) {
+	        Err(err) => {
+	            println!("got redis err: {}, retrying in 3 sec...", err);
+	            sleep(Duration::new(3, 0));
+	        },
+	        Ok(ref val) if val == "" => {
+	            sleep(Duration::new(1, 0));
+	        },
+	        Ok(input) => {
+	            println!("[IN]:  {}", input);
+	            let result = match serde_json::from_str(&input) {
+	            	Ok(input) => node.response(input),
+	            	Err(_) => "msg should take the form {\"cmd\": \"[get|send]_[votes|blocks]\", \"data\": <Blocks|Votes>}".to_string(),
+	            };
+	            println!("[OUT]: {}", result);
+	            redis_push(&redisq, &send_key, format!("{{\"out\":\"{}\"}}", result)).unwrap();
+	        }
+	    }
 	}
 }

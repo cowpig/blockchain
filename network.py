@@ -17,7 +17,7 @@ from mesh.programs import RedisProgram
 
 
 
-NODE_BINARY = '/Users/squash/Documents/Code/rust-blockchain/target/debug/blockchain'
+NODE_BINARY = 'target/debug/server'
 
 
 class BlockchainNode(RedisProgram):
