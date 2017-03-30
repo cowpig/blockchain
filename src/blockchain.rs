@@ -34,6 +34,12 @@ pub struct Blockchain {
 }
 
 impl Blockchain {
+	pub fn extend(&mut self, data: VoteChain) {
+		let last_block = self.blocks.last().unwrap().clone();
+		let next_block = last_block.next_block(data);
+		self.blocks.push(next_block);
+	}
+
 	pub fn is_valid(&self) -> bool{
 		let mut prev = &self.blocks[0];
 		for block in self.blocks[1..].iter() {

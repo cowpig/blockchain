@@ -66,6 +66,7 @@ impl Node {
 	fn set_blocks(&mut self, blocks: Blockchain) -> String {
 		if self.blockchain.replaced_by(&blocks) {
 			self.blockchain = blocks;
+			self.current_votes = HashMap::new();
 			return "accept".to_string()
 		}
 		return "reject".to_string()
@@ -106,10 +107,26 @@ impl Node {
 		return false
 	}
 
-	fn update(&self) {
-		// choose the votechain with the most votes
-		// broadcast it
-		unimplemented!();
+	fn choose_next_word(&mut self) {
+		if self.current_votes.keys().len() < 1 {
+			return;
+		}
+
+		let mut next_word = "".to_string();
+		let mut most_votes = 0;
+		for v in self.current_votes.keys() {
+			let wv = self.current_votes.get(v).unwrap();
+			if wv.votes.len() > most_votes {
+				most_votes = wv.votes.len();
+				next_word = wv.word.clone();
+			}
+		}
+		{
+			let next_data = self.current_votes.get(&next_word).unwrap();
+			self.blockchain.extend(next_data.clone());
+		}
+
+		self.current_votes = HashMap::new();
 	}
 }
 
