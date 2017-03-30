@@ -103,11 +103,11 @@ impl Node {
 			},
 			Entry::Occupied(mut entry) => {
 				entry.insert(vc);
-				return "accept".to_string();
+				return "accept votes".to_string();
 			},
 			Entry::Vacant(entry) => {
 				entry.insert(vc);
-				return "accept".to_string();
+				return "accept votes".to_string();
 			}
 		}
 	}
@@ -194,10 +194,17 @@ fn main() {
 			},
 			Ok(input) => {
 				println!("[IN]:  {}", input);
-				let result = match serde_json::from_str(&input) {
+				let mut result = match serde_json::from_str(&input) {
 					Ok(input) => node.response(input),
 					Err(_) => "{\"errors\": \"msg should take the form {cmd: [get|send]_[votes|blocks], data: <Blocks|Votes>\"}".to_string(),
 				};
+
+				if result == "accept votes" {
+					result = node.get_votes();
+				}
+				if result == "accept" {
+					result = node.get_blocks();
+				}
 				println!("[OUT]: {}", result);
 				redis_push(&redisq, &send_key, result).unwrap();
 			}
