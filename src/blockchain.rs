@@ -6,6 +6,7 @@ pub struct Block {
 	pub id: u64,
 	pub prev_hash: String,
 	pub data: VoteChain,
+	// todo: add a timestamp
 }
 
 impl Block {

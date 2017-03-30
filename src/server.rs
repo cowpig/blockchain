@@ -99,6 +99,18 @@ impl Node {
 	fn is_valid_votechain(&self, votechain: &VoteChain) -> bool {
 		return votechain.is_valid(self.n_bytes, self.max_remainder);
 	}
+
+	fn time_to_update(&self) -> bool {
+		// every n_seconds seconds return true
+		unimplemented!();
+		return false
+	}
+
+	fn update(&self) {
+		// choose the votechain with the most votes
+		// broadcast it
+		unimplemented!();
+	}
 }
 
 fn send(msg: String) {
