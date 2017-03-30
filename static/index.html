@@ -68,7 +68,7 @@
 
     // admins only
     function advance() {
-        window.nodesend(JSON.stringify({cmd: 'advance'}));
+        window.nodesend(JSON.stringify({cmd: 'choose_next_word'}));
     }
 
     function vote(word) {
@@ -142,6 +142,7 @@
         }
         E('socket-log').innerHTML += line + '<br/>';
     }
+
 
     window.socket = new WebSocket("ws://" + document.location.hostname + "/websocket/{{name}}");
     window.socket.onopen = function() {

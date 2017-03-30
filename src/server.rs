@@ -114,7 +114,7 @@ impl Node {
 
 	fn choose_next_word(&mut self) -> String {
 		if self.current_votes.keys().len() < 1 {
-			return;
+			return "need_votes".to_string();
 		}
 
 		let mut next_word = "".to_string();
@@ -186,7 +186,6 @@ fn main() {
 				// } else {
 				// }
 				sleep(Duration::from_millis(100));
-
 			},
 			Ok(input) => {
 				println!("[IN]:  {}", input);
