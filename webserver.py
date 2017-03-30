@@ -11,7 +11,7 @@ from geventwebsocket.handler import WebSocketHandler
 
 
 app = Bottle()
-HOST, PORT = ("0.0.0.0", 8080)
+HOST, PORT = ("0.0.0.0", 80)
 NODE_BINARY = 'target/debug/server'
 
 
