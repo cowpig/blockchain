@@ -73,6 +73,14 @@
         window.nodesend(JSON.stringify({cmd: 'choose_next_word'}));
     }
 
+    function new_word_vote(word) {
+        return [{
+            pub_id: "{{name}}",
+            last_hash: CryptoJS.SHA512(word).toString(),
+            nonce: ""
+        }]
+    }
+
     function vote(word) {
         var curr_votes = window.votes[word];
         E('chosen').innerHTML = word;
