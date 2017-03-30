@@ -1,34 +1,43 @@
 extern crate blockchain;
+extern crate serde_json;
 
-use blockchain::blockchain::{Block, is_valid_chain, replaces};
-use blockchain::wordvote::{hash_string, hash_bytes};
+use blockchain::blockchain::{Block, Blockchain};
+use blockchain::wordvote::{Vote, VoteChain};
+use blockchain::hash_utils::{hash_string, hash_bytes};
 
 #[test]
 fn test_blockchain() {
-	let mut blocks = vec![Block {
-		id: 0,
-		prev_hash: 0,
-		data: "I'm awake!".to_string(),
-	}];
+	let mut blocks = Blockchain {
+		blocks: vec![Block {
+			id: 0,
+			prev_hash: "".to_string(),
+			data: VoteChain {
+				word: "".to_string(),
+				votes: vec![],
+			},
+		}]
+	};
 
-	// this is necessary because rust
-	let next = blocks[0].next_block("stop.".to_string());
-	let next2 = next.next_block("hammertime.".to_string());
-	blocks.push(next);
-	blocks.push(next2);
-
-	// println!("{:?}", blocks[0]);
-	for bs in blocks[..blocks.len() - 1].iter().zip(blocks[1..].iter()) {
-		let (b1, b2) = bs;
-		assert!(b1.is_valid_next(b2));
-		// println!("{:?} valid? {:?}", b2, is_valid_block(b1, b2));
+	let votechain = serde_json::from_str(r#"
+	{
+		"word": "hello world",
+		"votes": [
+			{
+				"pub_id": "bananaman",
+				"last_hash": "309ecc489c12d6eb4cc40f50c902f2b4d0ed77ee511a7c7a9bcd3ca86d4cd86f989dd35bc5ff499670da34255b45b0cfd830e81f605dcf7dc5542e93ae9cd76f",
+				"nonce": "0"
+			}
+		]
 	}
-	assert!(is_valid_chain(&blocks));
-	// println!("valid chain? {:?}", is_valid_chain(&blocks));
+	"#).unwrap();
 
-	assert_eq!(blocks[0], blocks[0].clone());
+	blocks.extend(votechain);
 
-	assert_eq!(false, replaces(& blocks, & blocks[..2].to_vec()));
+	assert!(blocks.is_valid());
+
+	assert_eq!(blocks.blocks[0], blocks.blocks[0].clone());
+
+	assert_eq!(false, blocks.replaced_by(&blocks));
 }
 
 
