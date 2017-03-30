@@ -15,13 +15,15 @@ HOST, PORT = ("0.0.0.0", 80)
 NODE_BINARY = 'target/debug/server'
 
 
-@app.route('/')
-def index():
+@app.route('/<name>')
+def index(name='anon'):
     html = 'static/index.html'
     print("[HTTP]: %s" % html)
 
+    print('request.query')
+
     context = {
-        'node_id': '123',
+        'name': name,
     }
 
     return template(html, **context)
@@ -30,13 +32,11 @@ def index():
 def static_files(path):
     return static_file(path, root='static/')
 
-@app.route('/websocket')
-def handle_websocket():
+@app.route('/websocket/<name>')
+def handle_websocket(name='anon'):
     wsock = request.environ.get('wsgi.websocket')
     if not wsock:
         abort(400, 'Expected WebSocket request.')
-
-    name = 'bob'
 
     recv_key = 'node-{}-recv'.format(name)
     send_key = 'node-{}-send'.format(name)

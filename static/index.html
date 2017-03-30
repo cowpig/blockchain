@@ -16,7 +16,7 @@
 <img src="https://cdn2.macworld.co.uk/cmsdata/features/3531545/happy-Mac-original.jpg" style="margin-top: 3vh;width: 100px;text-align: center"/>
 
 
-<h1><b>Storycoin</b>: You are node <span id="pid">___</span></h1>
+<h1><b>Storycoin</b>: You are node <span id="pid">{{name}}</span></h1>
 <hr/>
 
 <ol style="text-align: left; display: block; margin: auto; float: none; width: 90%; max-width: 550px;">
@@ -130,7 +130,7 @@
         E('socket-log').innerHTML += line + '<br/>';
     }
 
-    window.socket = new WebSocket("ws://" + document.location.hostname + "/websocket");
+    window.socket = new WebSocket("ws://" + document.location.hostname + "/websocket/{{name}}");
     window.socket.onopen = function() {
         function init() {
             window.nodesend(JSON.stringify({cmd: 'get_votes', args: ''}));
