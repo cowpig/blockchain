@@ -74,23 +74,28 @@
     function vote(word) {
         var curr_votes = window.votes[word];
         E('chosen').innerHTML = word;
+
+        var word_data = curr_votes[curr_votes.length - 1]
+        var word_data_str = "{{name}}" + word_data.last_hash;
+
         var matches = [];
-        var i = 0;
         var chunksize = 100;
 
         var minechunk = function() {
             for (var b=0; b < chunksize; b++) {
-                if (valid_hash(window.data, i)) {
+                var i = Math.floor(Math.random() * 999999999999);
+                if (valid_hash(word_data_str, i) {
                     matches.push(i);
                     next_vote = {
                         pub_id: "{{name}}",
-                        last_hash: window.votes[word][window.votes[word].length - 1],
-
+                        last_hash: word_data.last_hash,
+                        nonce: i,
                     }
+                    curr_votes.push(next_vote);
                     // send the updated votechain, with a vote object pushed on the end of it
-                    window.nodesend(JSON.stringify({cmd: 'set_votes', 'args': i}));
+                    window.nodesend(JSON.stringify({cmd: 'set_votes', data: curr_votes}));
+                    break;
                 }
-                i += 1;
             }
         }
         var mine = function() {
@@ -106,6 +111,18 @@
         mine();
     };
 
+    function set_blocks(msg) {
+        set_votes(msg.blocks[msg.blocks.length - 1]);
+    }
+
+    function set_votes(msg) { 
+        msg.map(function(vote) {
+            var word = vote.word;
+            var votes = vote.votes;
+            E('words').innerHTML += '<button onclick="vote(\'' + word + '\')">' + word + '(' + votes.length + ')</button>';
+        });
+    }
+
     window.nodesend = function(val) {
         val = val.trim();
         E('socket-log').innerHTML += '[<] ' + val + '<br/>';
@@ -117,18 +134,18 @@
         console.log('[>] ' + val);
         var msg = JSON.parse(val);
 
-        var line = '[>] ';
+        var line = '[>] ' + msg.type || msg;
 
-        if (msg.length) {
-            E('words').innerHTML = '';
+        if (msg.type) {
+            var type = msg.type;
 
-            window.votes = msg;
+            if (type == "votes") {
+                set_votes(msg.data);
+            }
 
-            msg.map(function(vote) {
-                var word = vote.word;
-                var votes = vote.votes;
-                E('words').innerHTML += '<button onclick="vote(\'' + word + '\')">' + word + '(' + votes.length + ')</button>';
-            });
+            if (type == "blocks") {
+                set_blocks(msg.data);
+            }
         }
         if (msg.name) {
             E('pid').innerHTML = msg.name;
