@@ -46,7 +46,7 @@
 
 <br/><br/>
 
-<div style="color: red" title="Chosen word">[<span style="color: black" id="chosen">-</span>]</div>
+<div style="color: red" title="Chosen word">Mining for: [<span style="color: black" id="chosen"><span style="color: grey"> <i>choose word above</i> </span></span>]</div>
 <div id="currenthash">-</div>
 <br/><br/>
 
@@ -59,9 +59,7 @@
     E('propose').addEventListener('keyup', function(event) {
         // if enter
         if (event.keyCode == 13) {
-
-
-            window.nodesend(E('propose').value);
+            vote(E('propose').value);
             E('propose').value = '';
             event.preventDefault();
             event.stopPropagation();

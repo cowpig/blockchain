@@ -4,6 +4,8 @@ import redis
 import json
 import subprocess
 
+from time import sleep
+
 from bottle import request, template, Bottle, abort, static_file
 from gevent.pywsgi import WSGIServer
 from geventwebsocket import WebSocketError
@@ -63,6 +65,7 @@ def recv_loop(wsock, nodeq, recv_key):
             if recv:
                 print("[>]: {}".format(recv))
                 nodeq.rpush(recv_key, recv)
+            sleep(0.02)
         except WebSocketError:
             break
 
@@ -73,6 +76,7 @@ def send_loop(wsock, nodeq, send_key):
             if send:
                 print("[<]: {}".format(send.decode()))
                 wsock.send(send.decode())
+            sleep(0.02)
         except WebSocketError:
             break
 
