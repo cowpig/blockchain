@@ -130,6 +130,7 @@
 
     function set_blocks(msg) {
         set_votes(msg.blocks[msg.blocks.length - 1]);
+        E('story').innerHTML = msg.blocks.map(function(block) {return block.data.word}).join(" ");
     }
 
     function set_votes(data) {
