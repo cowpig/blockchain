@@ -44,12 +44,12 @@ def handle_websocket(name='anon'):
     if not wsock:
         abort(400, 'Expected WebSocket request.')
 
-    recv_key = 'node-{}-recv'.format(name)
-    send_key = 'node-{}-send'.format(name)
+    recv_key = 'node-recv'.format(name)
+    send_key = 'node-send'.format(name)
     nodeq = redis.Redis(host='127.0.0.1', port=6379, db=0)
-    proc = subprocess.Popen([NODE_BINARY, name], stdin=subprocess.PIPE, stdout=sys.stdout, stderr=sys.stderr)
+    # proc = subprocess.Popen([NODE_BINARY, name], stdin=subprocess.PIPE, stdout=sys.stdout, stderr=sys.stderr)
 
-    wsock.send(json.dumps({'pid': proc.pid, 'name': name}))
+    wsock.send(json.dumps({'name': name}))
 
     newpid = os.fork()
     if newpid == 0:

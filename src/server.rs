@@ -7,11 +7,11 @@ extern crate time;
 
 use std::collections::hash_map::{HashMap, Entry};
 // use std::io;
-use std::env;
+// use std::env;
 use std::thread::sleep;
 use std::time::{Duration};
-use nix::unistd::getpid;
-use time::{now};
+// use nix::unistd::getpid;
+// use time::{now};
 
 use blockchain::blockchain::{Block, Blockchain};
 use blockchain::wordvote::{VoteChain};
@@ -38,9 +38,9 @@ struct Node {
 	n_bytes: usize,
 	max_remainder: u8,
 
-	seconds_per_vote: i64,
+	// seconds_per_vote: i64,
 
-	last_update: i64,
+	// last_update: i64,
 }
 
 impl Node {
@@ -154,21 +154,21 @@ fn main() {
 		n_bytes: 2,
 		max_remainder: 5,
 
-		seconds_per_vote: 15,
+		// seconds_per_vote: 15,
 
-		last_update: now().to_timespec().sec,
+		// last_update: now().to_timespec().sec,
 	};
 
-	let args: Vec<String> = env::args().collect();
-	let name = if args.len() > 1 {
-		args[1].clone()
-	} else {
-		getpid().to_string()
-	};
+	// let args: Vec<String> = env::args().collect();
+	// let name = if args.len() > 1 {
+	// 	args[1].clone()
+	// } else {
+	// 	getpid().to_string()
+	// };
 
 	let redisq = get_redisconn().unwrap();
-	let recv_key = format!("node-{pid}-recv", pid=name);
-	let send_key = format!("node-{pid}-send", pid=name);
+	let recv_key = format!("node-recv");
+	let send_key = format!("node-send");
 
 	println!("Listening on redis://127.0.0.1/0 keys:{} & {}", recv_key, send_key);
 
