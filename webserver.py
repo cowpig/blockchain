@@ -15,6 +15,10 @@ HOST, PORT = ("0.0.0.0", 80)
 NODE_BINARY = 'target/debug/server'
 
 
+@app.route('/')
+def noname():
+    return 'Please go to /yournickname to create a node with your chosen nickname.'
+
 @app.route('/<name>')
 def index(name='anon'):
     html = 'static/index.html'
