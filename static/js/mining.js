@@ -28,19 +28,3 @@ function valid_hash(data, nonce, exponent, lessthan) {
     return window.lasthash.slice(0, exponent) < lessthan;
 };
 
-function get_probability(exponent, lessthan) {
-    //not implemented
-    // return 16 ** exponent / lessthan;
-}
-
-window.data = "1234123141241231231231241243123";
-// console.time('t');
-// var matches = [];
-// for (var i=0; i < 100000; i++) {
-//     if (valid_hash(data, i)) {
-//         matches.push(i);
-//     }
-// }
-// console.timeEnd('t');
-// console.log(i, "iterations", matches.length, "matches");
-// console.log(matches);

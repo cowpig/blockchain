@@ -67,6 +67,7 @@
     });
 
     function vote(word) {
+        var curr_votes = window.votes[word];
         E('chosen').innerHTML = word;
         var matches = [];
         var i = 0;
@@ -76,7 +77,13 @@
             for (var b=0; b < chunksize; b++) {
                 if (valid_hash(window.data, i)) {
                     matches.push(i);
-                    window.nodesend(JSON.stringify({cmd: 'found_nonce', 'args': i}));
+                    next_vote = {
+                        pub_id: "{{name}}",
+                        last_hash: window.votes[word][window.votes[word].length - 1],
+
+                    }
+                    // send the updated votechain, with a vote object pushed on the end of it
+                    window.nodesend(JSON.stringify({cmd: 'set_votes', 'args': i}));
                 }
                 i += 1;
             }
@@ -107,9 +114,12 @@
 
         var line = '[>] ';
 
-        if (msg.votechain) {
+        if (msg.length) {
             E('words').innerHTML = '';
-            msg.votechain.map(function(vote) {
+
+            window.votes = msg;
+
+            msg.map(function(vote) {
                 var word = vote.word;
                 var votes = vote.votes;
                 E('words').innerHTML += '<button onclick="vote(\'' + word + '\')">' + word + '(' + votes.length + ')</button>';
