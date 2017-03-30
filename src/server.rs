@@ -44,7 +44,7 @@ struct Node {
 }
 
 fn tag(s: String, tag: &str) -> String {
-	return "{ \"type\":\"".to_string() + tag + "\", \"data\": \"" + &s + "\"}";
+	return "{\"type\": \"".to_string() + tag + "\", \"data\": " + &s + "}";
 }
 
 impl Node {
@@ -56,7 +56,7 @@ impl Node {
 			"get_votes" => tag(self.get_votes(), "votes"),
 			"set_blocks" => tag(match msg.data.unwrap() {
 				MsgData::Blockchain(_) => "need a votechain with cmd 'set_votes'".to_string(),
-				MsgData::VoteChain(vc) => self.set_votes(vc) 	
+				MsgData::VoteChain(vc) => self.set_votes(vc)
 			}, "blocks"),
 			"set_votes" => tag(match msg.data.unwrap() {
 				MsgData::VoteChain(_) => "need a new blockchain with cmd 'set_blocks'".to_string(),
@@ -71,7 +71,7 @@ impl Node {
 		for block in self.blockchain.blocks.iter() {
 			story += &block.data.word;
 		}
-		return story;
+		return format!("\"{}\"", story);
 	}
 
 	fn get_blocks(&self) -> String {
@@ -199,7 +199,7 @@ fn main() {
 					Err(_) => "msg should take the form {\"cmd\": \"[get|send]_[votes|blocks]\", \"data\": <Blocks|Votes>}".to_string(),
 				};
 				println!("[OUT]: {}", result);
-				redis_push(&redisq, &send_key, format!("{{\"out\":\"{}\"}}", result)).unwrap();
+				redis_push(&redisq, &send_key, result).unwrap();
 			}
 		}
 	}

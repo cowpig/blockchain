@@ -34,10 +34,7 @@
 
 <div>
     <span id="words">
-        <button onclick="vote('Goaty McGoatface')">Goaty McGoatface</button>
-        <button onclick="vote('Motherboard Theresa')">Motherboard Theresa</button>
-        <button onclick="vote('John Coltrane')">John Coltrane</button>
-        <button onclick="vote('hippo')">hippo</button>
+        No words proposed yet.
     </span>
     <form style="display: inline;">
     <input type="text" placeholder="Propose word..." pattern="[^ ]" id="propose"/>
@@ -58,6 +55,8 @@
 
 <script>
     var E = function(arg) {return document.getElementById(arg)};
+
+    window.votes = {};
 
     E('propose').addEventListener('keyup', function(event) {
         // if enter
@@ -87,7 +86,7 @@
         var minechunk = function() {
             for (var b=0; b < chunksize; b++) {
                 var i = Math.floor(Math.random() * 999999999999);
-                if (valid_hash(word_data_str, i) {
+                if (valid_hash(word_data_str, i)) {
                     matches.push(i);
                     next_vote = {
                         pub_id: "{{name}}",
@@ -118,10 +117,10 @@
         set_votes(msg.blocks[msg.blocks.length - 1]);
     }
 
-    function set_votes(msg) { 
-        msg.map(function(vote) {
-            var word = vote.word;
-            var votes = vote.votes;
+    function set_votes(data) {
+        E('words').innerHTML = 'No words proposed yet.';
+        Object.keys(data).sort().map(function(word) {
+            var votes = data[word];
             E('words').innerHTML += '<button onclick="vote(\'' + word + '\')">' + word + '(' + votes.length + ')</button>';
         });
     }
@@ -137,7 +136,7 @@
         console.log('[>] ' + val);
         var msg = JSON.parse(val);
 
-        var line = '[>] ' + msg.type || msg;
+        var line = '[>] ';
 
         if (msg.type) {
             var type = msg.type;
@@ -149,12 +148,14 @@
             if (type == "blocks") {
                 set_blocks(msg.data);
             }
+            line += val;
         }
         if (msg.name) {
             E('nodes').innerHTML += '<button class="btn" disabled>' + msg.name + '</button> ';
+            line += val;
         }
         if (msg.out) {
-            line += msg.out;
+            line += val;
         }
         if (msg.errors) {
             line += '<span style="color:red">' + msg.errors + '</span>';
