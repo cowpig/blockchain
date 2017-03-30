@@ -134,10 +134,11 @@
     }
 
     function set_votes(data) {
-        E('words').innerHTML = 'No words proposed yet.';
+        E('words').innerHTML = '';
+        debugger;
         Object.keys(data).sort().map(function(word) {
-            var votes = data[word];
-            E('words').innerHTML += '<button onclick="vote(\'' + word + '\')">' + word + '(' + votes.length + ')</button>';
+            var votes = data[word].votes;
+            E('words').innerHTML += '<button onclick="vote(\'' + word + '\')">' + word + ' (' + votes.length + ' votes)</button>';
         });
     }
 

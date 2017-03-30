@@ -55,12 +55,12 @@ impl Node {
 			"get_blocks" => tag(self.get_blocks(), "blocks"),
 			"get_votes" => tag(self.get_votes(), "votes"),
 			"set_blocks" => tag(match msg.data.unwrap() {
-				MsgData::Blockchain(_) => "\"need a votechain with cmd 'set_votes'\"".to_string(),
-				MsgData::VoteChain(vc) => self.set_votes(vc)
-			}, "blocks"),
-			"set_votes" => tag(match msg.data.unwrap() {
 				MsgData::VoteChain(_) => "\"need a new blockchain with cmd 'set_blocks'\"".to_string(),
 				MsgData::Blockchain(blocks) => self.set_blocks(blocks)
+			}, "blocks"),
+			"set_votes" => tag(match msg.data.unwrap() {
+				MsgData::Blockchain(_) => "\"need a votechain with cmd 'set_votes'\"".to_string(),
+				MsgData::VoteChain(vc) => self.set_votes(vc)
 			}, "votes"),
 			_ => "error: unknown cmd".to_string()
 		}
