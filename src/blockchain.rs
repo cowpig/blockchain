@@ -1,56 +1,50 @@
-use std::hash::{Hash, Hasher};
-use std::collections::hash_map::DefaultHasher;
+use hash_utils::{hash_string};
+use wordvote::{VoteChain};
 
-use wordvote::{WordVote};
-
-#[derive(Debug, Eq, PartialEq, Clone, Serialize, Deserialize)]
+#[derive(Debug, Eq, PartialEq, Clone, Serialize, Deserialize, Hash)]
 pub struct Block {
 	pub id: u64,
-	pub prev_hash: u64,
-	pub data: Vec<WordVote>,
-}
-
-pub type Blockchain = Vec<Block>;
-
-pub fn get_hash<T: Hash>(t: &T) -> u64 {
-    let mut s = DefaultHasher::new();
-    t.hash(&mut s);
-    return s.finish()
-}
-
-impl Hash for Block {
-	fn hash<H:Hasher>(&self, state:&mut H) {
-		self.id.hash(state);
-		self.prev_hash.hash(state);
-		self.data.hash(state);
-	}
+	pub prev_hash: String,
+	pub data: VoteChain,
 }
 
 impl Block {
-	pub fn next_block(&self, data: String) -> Block {
+	pub fn next_block(&self, data: VoteChain) -> Block {
 		return Block {
 			id: self.id + 1,
-			prev_hash: get_hash(self),
+			prev_hash: self.get_hash_string(),
 			data: data,
 		}
 	}
 
 	pub fn is_valid_next(&self, new_block: & Block) -> bool {
-		return self.id + 1 == new_block.id && get_hash(self) == new_block.prev_hash;
+		return self.id + 1 == new_block.id && self.get_hash_string() == new_block.prev_hash;
+	}
+
+	pub fn get_hash_string(&self) -> String {
+		let s = self.id.to_string() + &self.prev_hash + &self.data.get_hash_string();
+		return hash_string(s);
 	}
 }
 
-pub fn is_valid_chain(chain: & Blockchain) -> bool{
-	let mut prev = &chain[0];
-	for block in chain[1..].iter() {
-		if !prev.is_valid_next(block) {
-			return false
+#[derive(Debug, Eq, PartialEq, Clone, Serialize, Deserialize, Hash)]	 
+pub struct Blockchain {
+	pub blocks: Vec<Block>
+}
+
+impl Blockchain {
+	pub fn is_valid(&self) -> bool{
+		let mut prev = &self.blocks[0];
+		for block in self.blocks[1..].iter() {
+			if !prev.is_valid_next(block) {
+				return false
+			}
+			prev = block;
 		}
-		prev = block;
+		return true
 	}
-	return true
-}
 
-pub fn replaces(curr_chain: & Blockchain, new_chain: & Blockchain) -> bool {
-	return (curr_chain.len() < new_chain.len()) && is_valid_chain(new_chain)
+	pub fn replaced_by(&self, other: & Blockchain) -> bool {
+		return (self.blocks.len() < other.blocks.len()) && other.is_valid();
+	}
 }
