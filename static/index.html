@@ -52,11 +52,11 @@
 <div id="currenthash">-</div>
 <br/><br/>
 
+<div id="nodes" title="Nodes participating in this story"></div>
+
 <pre id="socket-log" style="max-height: 500px; overflow-y: scroll;max-width: 300px;width:90%;text-align:left; margin: auto; float: none">
 </pre>
-<br/>
-<small>Nodes:</small><br/>
-<div id="nodes"></div>
+
 
 <script>
     var E = function(arg) {return document.getElementById(arg)};
@@ -135,7 +135,6 @@
 
     function set_votes(data) {
         E('words').innerHTML = '';
-        debugger;
         Object.keys(data).sort().map(function(word) {
             var votes = data[word].votes;
             E('words').innerHTML += '<button onclick="vote(\'' + word + '\')">' + word + ' (' + votes.length + ' votes)</button>';
