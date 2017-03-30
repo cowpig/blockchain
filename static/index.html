@@ -29,7 +29,7 @@
 
 <h2>Story <a href="#" onclick="advance()">&gt;</a></h2>
 <pre style="width: 95%; max-width: 600px;height: auto; overflow-y:scroll; display: block; float: none; margin: auto;">
-    <span id="story">There once was a goat named</span> <span style="color: green">_______</span>
+    <span id="story"></span> <span style="color: green">_______</span>
 </pre><br/>
 
 <div>
@@ -43,7 +43,12 @@
 
 <br/><br/>
 
-<div style="color: red" title="Chosen word">Mining for: [<span style="color: black" id="chosen"><span style="color: grey"> <i>choose word above</i> </span></span>]</div>
+<div style="color: red" title="Chosen word">
+    Mining for: [<span style="color: black" id="chosen"><span style="color: grey"> <i>choose word above</i> </span></span>]
+
+    &nbsp; &nbsp;
+    <button class="btn btn-danger" onclick="window.keep_mining = false">Stop</button>
+</div>
 <div id="currenthash">-</div>
 <br/><br/>
 
@@ -77,19 +82,21 @@
         return [{
             pub_id: "{{name}}",
             last_hash: CryptoJS.SHA512(word).toString(),
-            nonce: ""
+            nonce: "",
         }]
     }
 
     function vote(word) {
-        var curr_votes = window.votes[word];
+        var curr_votes = window.votes[word] || new_word_vote(word);
         E('chosen').innerHTML = word;
 
-        var word_data = curr_votes[curr_votes.length - 1]
+        var word_data = curr_votes[curr_votes.length - 1];
         var word_data_str = "{{name}}" + word_data.last_hash;
 
         var matches = [];
         var chunksize = 100;
+
+        window.keep_mining = true;
 
         var minechunk = function() {
             for (var b=0; b < chunksize; b++) {
@@ -99,11 +106,11 @@
                     next_vote = {
                         pub_id: "{{name}}",
                         last_hash: word_data.last_hash,
-                        nonce: i,
+                        nonce: String(i),
                     }
                     curr_votes.push(next_vote);
                     // send the updated votechain, with a vote object pushed on the end of it
-                    window.nodesend(JSON.stringify({cmd: 'set_votes', data: curr_votes}));
+                    window.nodesend(JSON.stringify({cmd: 'set_votes', data: {word: word, votes: curr_votes}}));
                     break;
                 }
             }
@@ -111,7 +118,7 @@
         var mine = function() {
             minechunk();
             E('currenthash').innerHTML = window.lasthash;
-            if (i < 50000) {
+            if (window.keep_mining) {
                 window.requestAnimationFrame(mine);
             } else {
                 console.timeEnd('t');
@@ -156,13 +163,14 @@
             if (type == "blocks") {
                 set_blocks(msg.data);
             }
+
+            if (type == "story") {
+                E('story').innerHTML = msg.data;
+            }
             line += val;
         }
         if (msg.name) {
             E('nodes').innerHTML += '<button class="btn" disabled>' + msg.name + '</button> ';
-            line += val;
-        }
-        if (msg.out) {
             line += val;
         }
         if (msg.errors) {

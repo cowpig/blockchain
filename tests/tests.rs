@@ -20,14 +20,25 @@ fn test_blockchain() {
 
 	let votechain = serde_json::from_str(r#"
 	{
-		"word": "hello world",
-		"votes": [
-			{
-				"pub_id": "bananaman",
-				"last_hash": "309ecc489c12d6eb4cc40f50c902f2b4d0ed77ee511a7c7a9bcd3ca86d4cd86f989dd35bc5ff499670da34255b45b0cfd830e81f605dcf7dc5542e93ae9cd76f",
-				"nonce": "0"
-			}
-		]
+	    "word": "goaty",
+	    "votes": [
+	      {
+	        "pub_id": "max",
+	        "last_hash": "810da6664c18c1127ffbe7d8ee3335f12d6754511c7341267e0cf5dfabf52027c242f9f392e1205f5b3cd4bb88152500b633ad5d66f7c750fc866f67cb5e205e",
+	        "nonce": ""
+	      },
+	      {
+	        "pub_id": "max",
+	        "last_hash": "810da6664c18c1127ffbe7d8ee3335f12d6754511c7341267e0cf5dfabf52027c242f9f392e1205f5b3cd4bb88152500b633ad5d66f7c750fc866f67cb5e205e",
+	        "nonce": 995721229548
+	      },
+	      {
+	        "pub_id": "max",
+	        "last_hash": "810da6664c18c1127ffbe7d8ee3335f12d6754511c7341267e0cf5dfabf52027c242f9f392e1205f5b3cd4bb88152500b633ad5d66f7c750fc866f67cb5e205e",
+	        "nonce": 386927554466
+	      }
+	    ]
+	  }
 	}
 	"#).unwrap();
 
