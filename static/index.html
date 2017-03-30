@@ -27,7 +27,7 @@
 
 <hr/>
 
-<h2>Story</h2>
+<h2>Story <a href="#" onclick="advance()">&gt;</a></h2>
 <pre style="width: 95%; max-width: 600px;height: auto; overflow-y:scroll; display: block; float: none; margin: auto;">
     <span id="story">There once was a goat named</span> <span style="color: green">_______</span>
 </pre><br/>
@@ -65,6 +65,11 @@
             event.stopPropagation();
         }
     });
+
+    // admins only
+    function advance() {
+        window.nodesend(JSON.stringify({cmd: 'advance'}));
+    }
 
     function vote(word) {
         var curr_votes = window.votes[word];

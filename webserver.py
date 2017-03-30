@@ -62,7 +62,7 @@ def recv_loop(wsock, nodeq, recv_key):
     while True:
         try:
             recv = wsock.receive()
-            if recv:
+            if recv and recv.strip():
                 print("[>]: {}".format(recv))
                 nodeq.rpush(recv_key, recv)
             sleep(0.02)
@@ -73,7 +73,7 @@ def send_loop(wsock, nodeq, send_key):
     while True:
         try:
             send = nodeq.rpop(send_key)
-            if send:
+            if send and send.strip():
                 print("[<]: {}".format(send.decode()))
                 wsock.send(send.decode())
             sleep(0.02)
