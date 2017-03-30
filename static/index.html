@@ -111,8 +111,10 @@
 
         if (msg.votechain) {
             E('words').innerHTML = '';
-            msg.votechain.map(function({word, votes}) {
-                E('words').innerHTML += '<button onclick="vote(\'' + word + '\')">' + word + '</button>';
+            msg.votechain.map(function(vote) {
+                var word = vote.word;
+                var votes = vote.votes;
+                E('words').innerHTML += '<button onclick="vote(\'' + word + '\')">' + word + '(' + votes.length + ')</button>';
             });
         }
         if (msg.name) {
@@ -128,8 +130,7 @@
         E('socket-log').innerHTML += line + '<br/>';
     }
 
-
-    window.socket = new WebSocket("ws://localhost:8080/websocket");
+    window.socket = new WebSocket("ws://" + document.location.hostname + "/websocket");
     window.socket.onopen = function() {
         function init() {
             window.nodesend(JSON.stringify({cmd: 'get_votes', args: ''}));
