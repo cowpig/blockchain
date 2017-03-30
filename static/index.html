@@ -52,6 +52,9 @@
 
 <pre id="socket-log" style="max-height: 500px; overflow-y: scroll;max-width: 300px;width:90%;text-align:left; margin: auto; float: none">
 </pre>
+<br/>
+<small>Nodes:</small><br/>
+<div id="nodes"></div>
 
 <script>
     var E = function(arg) {return document.getElementById(arg)};
@@ -148,8 +151,7 @@
             }
         }
         if (msg.name) {
-            E('pid').innerHTML = msg.name;
-            line += val;
+            E('nodes').innerHTML += '<button class="btn" disabled>' + msg.name + '</button> ';
         }
         if (msg.out) {
             line += msg.out;
