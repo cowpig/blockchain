@@ -160,42 +160,43 @@ fn main() {
 	};
 
 	let args: Vec<String> = env::args().collect();
-    let name = if args.len() > 1 {
-        args[1].clone()
-    } else {
-        getpid().to_string()
-    };
+	let name = if args.len() > 1 {
+		args[1].clone()
+	} else {
+		getpid().to_string()
+	};
 
 	let redisq = get_redisconn().unwrap();
-    let recv_key = format!("node-{pid}-recv", pid=name);
-    let send_key = format!("node-{pid}-send", pid=name);
+	let recv_key = format!("node-{pid}-recv", pid=name);
+	let send_key = format!("node-{pid}-send", pid=name);
 
-    println!("Listening on redis://127.0.0.1/0 keys:{} & {}", recv_key, send_key);
+	println!("Listening on redis://127.0.0.1/0 keys:{} & {}", recv_key, send_key);
 
 	redis_push(&redisq, &send_key, "{\"cmd\":\"start\",\"args\":\"\"}".to_string()).unwrap();
 	loop {
-	    match redis_pop(&redisq, &recv_key) {
-	        Err(err) => {
-	            println!("got redis err: {}, retrying in 3 sec...", err);
-	            sleep(Duration::new(3, 0));
-	        },
-	        Ok(ref val) if val == "" => {
-	        	// if node.time_to_update() {
-	        	// 	node.choose_next_word();
-	        	// 	redis_push(&redisq, &send_key, node.get_blocks());
-	        	// } else {
-		        // }
-		        sleep(Duration::from_millis(100));
-	        },
-	        Ok(input) => {
-	            println!("[IN]:  {}", input);
-	            let result = match serde_json::from_str(&input) {
-	            	Ok(input) => node.response(input),
-	            	Err(_) => "msg should take the form {\"cmd\": \"[get|send]_[votes|blocks]\", \"data\": <Blocks|Votes>}".to_string(),
-	            };
-	            println!("[OUT]: {}", result);
-	            redis_push(&redisq, &send_key, format!("{{\"out\":\"{}\"}}", result)).unwrap();
-	        }
-	    }
+		match redis_pop(&redisq, &recv_key) {
+			Err(err) => {
+				println!("got redis err: {}, retrying in 3 sec...", err);
+				sleep(Duration::new(3, 0));
+			},
+			Ok(ref val) if val == "" => {
+				// if node.time_to_update() {
+				// 	node.choose_next_word();
+				// 	redis_push(&redisq, &send_key, node.get_blocks());
+				// } else {
+				// }
+				sleep(Duration::from_millis(100));
+
+			},
+			Ok(input) => {
+				println!("[IN]:  {}", input);
+				let result = match serde_json::from_str(&input) {
+					Ok(input) => node.response(input),
+					Err(_) => "msg should take the form {\"cmd\": \"[get|send]_[votes|blocks]\", \"data\": <Blocks|Votes>}".to_string(),
+				};
+				println!("[OUT]: {}", result);
+				redis_push(&redisq, &send_key, format!("{{\"out\":\"{}\"}}", result)).unwrap();
+			}
+		}
 	}
 }
