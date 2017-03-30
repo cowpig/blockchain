@@ -183,7 +183,8 @@ fn main() {
 	        Ok(ref val) if val == "" => {
 	        	if node.time_to_update() {
 	        		node.choose_next_word();
-	        		redis_push(&redisq, &send_key, node.get_blocks());
+	        		node.last_update = now().to_timespec().sec;
+	        		redis_push(&redisq, &send_key, node.get_blocks()).unwrap();
 	        	} else {
 		            sleep(Duration::from_millis(100));
 		        }
