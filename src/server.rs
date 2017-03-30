@@ -46,6 +46,7 @@ struct Node {
 impl Node {
 	fn response(&mut self, msg: MsgStruct) -> String {
 		match msg.cmd.as_ref() {
+			"choose_next_word" => self.choose_next_word(),
 			"get_story" => self.get_story(),
 			"get_blocks" => self.get_blocks(),
 			"get_votes" => self.get_votes(),
@@ -111,11 +112,7 @@ impl Node {
 		return votechain.is_valid(self.n_bytes, self.max_remainder);
 	}
 
-	fn time_to_update(&self) -> bool {
-		return now().to_timespec().sec - self.seconds_per_vote > self.last_update;
-	}
-
-	fn choose_next_word(&mut self) {
+	fn choose_next_word(&mut self) -> String {
 		if self.current_votes.keys().len() < 1 {
 			return;
 		}
@@ -135,6 +132,8 @@ impl Node {
 		}
 
 		self.current_votes = HashMap::new();
+
+		return self.get_blocks();
 	}
 }
 
@@ -181,12 +180,12 @@ fn main() {
 	            sleep(Duration::new(3, 0));
 	        },
 	        Ok(ref val) if val == "" => {
-	        	if node.time_to_update() {
-	        		node.choose_next_word();
-	        		redis_push(&redisq, &send_key, node.get_blocks());
-	        	} else {
-		            sleep(Duration::from_millis(100));
-		        }
+	        	// if node.time_to_update() {
+	        	// 	node.choose_next_word();
+	        	// 	redis_push(&redisq, &send_key, node.get_blocks());
+	        	// } else {
+		        // }
+		        sleep(Duration::from_millis(100));
 	        },
 	        Ok(input) => {
 	            println!("[IN]:  {}", input);
