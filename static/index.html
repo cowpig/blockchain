@@ -87,25 +87,34 @@
     }
 
     function vote(word) {
-        var curr_votes = window.votes[word] || new_word_vote(word);
+        var curr_votes = window.votes[word] ? window.votes[word].votes : new_word_vote(word);
         E('chosen').innerHTML = word;
 
         var word_data = curr_votes[curr_votes.length - 1];
+        if (!word_data) {
+            debugger;
+        }
         var word_data_str = "{{name}}" + word_data.last_hash;
 
-        var matches = [];
         var chunksize = 100;
 
         window.keep_mining = true;
 
         var minechunk = function() {
+            curr_votes = window.votes[word] ? window.votes[word].votes : new_word_vote(word);
+            word_data = curr_votes[curr_votes.length - 1];
+            if (!word_data) {
+                debugger;
+            }
+            word_data_str = "{{name}}" + word_data.last_hash;
+            chunksize = 100;
+
             for (var b=0; b < chunksize; b++) {
                 var i = Math.floor(Math.random() * 999999999999);
                 if (valid_hash(word_data_str, i)) {
-                    matches.push(i);
-                    next_vote = {
+                    var next_vote = {
                         pub_id: "{{name}}",
-                        last_hash: word_data.last_hash,
+                        last_hash: CryptoJS.SHA512(String(word_data_str) + String(word_data.nonce)).toString(),
                         nonce: String(i),
                     }
                     curr_votes.push(next_vote);
@@ -129,16 +138,17 @@
     };
 
     function set_blocks(msg) {
-        set_votes(msg.blocks[msg.blocks.length - 1]);
+        set_votes({});
         E('story').innerHTML = msg.blocks.map(function(block) {return block.data.word}).join(" ");
     }
 
     function set_votes(data) {
         E('words').innerHTML = '';
         Object.keys(data).sort().map(function(word) {
-            var votes = data[word].votes;
+            var votes = data[word].votes || [];
             E('words').innerHTML += '<button onclick="vote(\'' + word + '\')">' + word + ' (' + votes.length + ' votes)</button>';
         });
+        window.votes = data;
     }
 
     window.nodesend = function(val) {
@@ -158,11 +168,15 @@
             var type = msg.type;
 
             if (type == "votes") {
-                set_votes(msg.data);
+                if (msg.data != "accept" && msg.data != "reject") {
+                    set_votes(msg.data);
+                }
             }
 
             if (type == "blocks") {
-                set_blocks(msg.data);
+                if (msg.data != "accept" && msg.data != "reject") {
+                    set_blocks(msg.data);
+                }
             }
 
             if (type == "story") {

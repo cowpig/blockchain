@@ -24,7 +24,7 @@ function valid_hash(data, nonce, exponent, lessthan) {
         lessthan = 5;
     }
 
-    window.lasthash = CryptoJS.SHA512(data + nonce).toString();
+    window.lasthash = CryptoJS.SHA512(String(data) + String(nonce)).toString();
     return window.lasthash.slice(0, exponent) < lessthan;
 };
 

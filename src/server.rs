@@ -69,7 +69,7 @@ impl Node {
 	fn get_story(&self) -> String {
 		let mut story = "".to_string();
 		for block in self.blockchain.blocks.iter() {
-			story += &block.data.word;
+			story += format!("{} ", block.data.word).as_ref();
 		}
 		return format!("\"{}\"", story);
 	}
@@ -103,13 +103,12 @@ impl Node {
 			},
 			Entry::Occupied(mut entry) => {
 				entry.insert(vc);
-				return self.get_votes();
 			},
 			Entry::Vacant(entry) => {
 				entry.insert(vc);
-				return self.get_votes();
 			}
 		}
+		return self.get_votes();
 	}
 
 	fn is_valid_votechain(&self, votechain: &VoteChain) -> bool {

@@ -20,25 +20,19 @@ fn test_blockchain() {
 
 	let votechain = serde_json::from_str(r#"
 	{
-	    "word": "goaty",
+	    "word": "what",
 	    "votes": [
-	      {
-	        "pub_id": "max",
-	        "last_hash": "810da6664c18c1127ffbe7d8ee3335f12d6754511c7341267e0cf5dfabf52027c242f9f392e1205f5b3cd4bb88152500b633ad5d66f7c750fc866f67cb5e205e",
-	        "nonce": ""
-	      },
-	      {
-	        "pub_id": "max",
-	        "last_hash": "810da6664c18c1127ffbe7d8ee3335f12d6754511c7341267e0cf5dfabf52027c242f9f392e1205f5b3cd4bb88152500b633ad5d66f7c750fc866f67cb5e205e",
-	        "nonce": 995721229548
-	      },
-	      {
-	        "pub_id": "max",
-	        "last_hash": "810da6664c18c1127ffbe7d8ee3335f12d6754511c7341267e0cf5dfabf52027c242f9f392e1205f5b3cd4bb88152500b633ad5d66f7c750fc866f67cb5e205e",
-	        "nonce": 386927554466
-	      }
-	    ]
-	  }
+			{
+			  "pub_id": "max",
+			  "last_hash": "813db7fa66134df5295d98c5abbf90ff7206d68f3372a25138ee9c2bbb4c96d22f978ffd3da550f8dc38a15e106bec5266f91bc8447241b79e4ae0ce9fb8ff88",
+			  "nonce": ""
+			},
+			{
+			  "pub_id": "max",
+			  "last_hash": "711fcabd230670030e8c4eacca7add668f5de5611d286c2c8f39380ca1e1b34db8a305832d2283722d151c3a575c3972cf9301fae02a8825aa63ea5ee1fde0ad",
+			  "nonce": "488906987642"
+			}
+		]
 	}
 	"#).unwrap();
 
