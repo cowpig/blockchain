@@ -53,15 +53,18 @@
 <pre id="socket-log" style="max-height: 500px; overflow-y: scroll;max-width: 300px;width:90%;text-align:left; margin: auto; float: none; white-space: nowrap">
 </pre>
 <hr/>
-Made by Max &amp; Nick.
-View the code on <a href="https://github.com/cowpig/blockchain">github</a>.<br/>
-Storycoin is implemented as a double-nested blockchain in rust.
+Storycoin is implemented as a double-nested blockchain in rust.<br/>
+The inner chain is used to reach a consensus on the votes for proposed words, and the outer chain is a block for each word in the story.<br/>
+Votes for words are mined using the hashing power of your browser (a proof-of-work system).<br/><br/>
+Made by Max &amp; Nick. View the code on <a href="https://github.com/cowpig/blockchain">github</a>.<br/>
+<br/><br/>
 
 <script>
     var E = function(arg) {return document.getElementById(arg)};
 
     window.nodes = [];
     window.votes = {};
+    window.story = '';
 
     E('propose').addEventListener('keyup', function(event) {
         // if enter
@@ -75,6 +78,9 @@ Storycoin is implemented as a double-nested blockchain in rust.
 
     // admins only
     function advance() {
+        window.keep_mining = false;
+        window.mining_for = '';
+        E('words').innerHTML = '';
         window.nodesend(JSON.stringify({cmd: 'choose_next_word'}));
     }
 
@@ -87,6 +93,8 @@ Storycoin is implemented as a double-nested blockchain in rust.
     }
 
     function vote(word) {
+        window.keep_mining = false;  // stop executing other mines
+
         var curr_votes = window.votes[word] ? window.votes[word].votes : new_word_vote(word);
         E('chosen').innerHTML = word;
 
@@ -97,10 +105,7 @@ Storycoin is implemented as a double-nested blockchain in rust.
         var word_data_str = "{{name}}" + word_data.last_hash;
 
         var chunksize = 100;
-
-        window.keep_mining = true;
-        window.mining_for = word;
-
+       
         var minechunk = function() {
             curr_votes = window.votes[word] ? window.votes[word].votes : new_word_vote(word);
             word_data = curr_votes[curr_votes.length - 1];
@@ -112,6 +117,7 @@ Storycoin is implemented as a double-nested blockchain in rust.
 
             for (var b=0; b < chunksize; b++) {
                 var i = Math.floor(Math.random() * 999999999999);
+                if (!window.keep_mining) break;
                 if (valid_hash(word_data_str, i)) {
                     var next_vote = {
                         pub_id: "{{name}}",
@@ -132,15 +138,28 @@ Storycoin is implemented as a double-nested blockchain in rust.
                 window.requestAnimationFrame(mine);
             } else {
                 console.timeEnd('t');
+                E('chosen').innerHTML = '-';
+                E('currenthash').innerHTML = '';
             }
         };
         console.time('t');
+        window.keep_mining = true;
+        window.mining_for = word;
         mine();
     };
 
     function set_blocks(msg) {
         set_votes({});
-        E('story').innerHTML = msg.blocks.map(function(block) {return block.data.word}).join(" ");
+        var story = msg.blocks.map(function(block) {return block.data.word}).join(" ");
+
+        // stop mining once you get a new story
+        if (story != window.story) {
+            window.story = story;
+            E('story').innerHTML = window.story;
+            window.keep_mining = false;
+            window.mining_for = '';
+            E('words').innerHTML = '';
+        }
     }
 
     function set_votes(data) {
