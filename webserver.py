@@ -3,6 +3,7 @@ import sys
 import redis
 import json
 import subprocess
+import hashlib
 
 from time import sleep
 
@@ -16,6 +17,7 @@ app = Bottle()
 HOST, PORT = ("0.0.0.0", 80)
 NODE_BINARY = 'target/debug/server'
 
+WEBSOCKETS_KEY = 'storycoin-websockets'
 
 @app.route('/')
 def noname():
@@ -47,9 +49,11 @@ def handle_websocket(name='anon'):
     recv_key = 'node-recv'.format(name)
     send_key = 'node-send'.format(name)
     nodeq = redis.Redis(host='127.0.0.1', port=6379, db=0)
-    # proc = subprocess.Popen([NODE_BINARY, name], stdin=subprocess.PIPE, stdout=sys.stdout, stderr=sys.stderr)
+    
+    num_sockets = int(nodeq.get(WEBSOCKETS_KEY) or 0)
+    nodeq.set(WEBSOCKETS_KEY, num_sockets + 1)
 
-    wsock.send(json.dumps({'name': name}))
+    nodeq.rpush(send_key, json.dumps({'name': name}))
 
     newpid = os.fork()
     if newpid == 0:
@@ -63,19 +67,33 @@ def recv_loop(wsock, nodeq, recv_key):
         try:
             recv = wsock.receive()
             if recv and recv.strip():
-                print("[>]: {}".format(recv))
+                print("[>]: {}".format(recv)[:100])
                 nodeq.rpush(recv_key, recv)
             sleep(0.02)
         except WebSocketError:
             break
 
 def send_loop(wsock, nodeq, send_key):
+    last_msg = None
     while True:
         try:
-            send = nodeq.rpop(send_key)
-            if send and send.strip():
-                print("[<]: {}".format(send.decode()))
-                wsock.send(send.decode())
+            msg = nodeq.rpop(send_key)
+            if msg and msg.strip() and msg != last_msg:
+                print("[<]: {}".format(msg.decode())[:100])
+                
+                msg_key = hashlib.md5(msg).hexdigest()
+                num_sends = int(nodeq.get(msg_key) or 0)
+                num_nodes = int(nodeq.get(WEBSOCKETS_KEY) or 0)
+
+                if num_sends < num_nodes:
+                    wsock.send(msg.decode())
+                    nodeq.rpush(send_key, msg)
+                    nodeq.set(msg_key, num_sends + 1)
+
+            elif msg and msg == last_msg:
+                nodeq.rpush(send_key, msg)
+
+            last_msg = msg
             sleep(0.02)
         except WebSocketError:
             break

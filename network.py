@@ -36,7 +36,7 @@ def run_lan_node(name=None):
     node.start()
     node.program.setup(node_name)
 
-    subprocess.Popen([NODE_BINARY, name], stdin=subprocess.PIPE, stdout=sys.stdout, stderr=sys.stderr)
+    subprocess.Popen([NODE_BINARY, name] if name else [NODE_BINARY], stdin=subprocess.PIPE, stdout=sys.stdout, stderr=sys.stderr)
 
     return node
 

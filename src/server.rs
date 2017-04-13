@@ -193,7 +193,7 @@ fn main() {
 			},
 			Ok(input) => {
 				println!("[IN]:  {}", input);
-				let mut result = match serde_json::from_str(&input) {
+				let result = match serde_json::from_str(&input) {
 					Ok(input) => node.response(input),
 					Err(_) => "{\"errors\": \"msg should take the form {cmd: [get|send]_[votes|blocks], data: <Blocks|Votes>\"}".to_string(),
 				};

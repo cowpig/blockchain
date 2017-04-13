@@ -33,12 +33,8 @@
 </pre><br/>
 
 <div>
-    <span id="words">
-        No words proposed yet.
-    </span>
-    <form style="display: inline;">
+    <span id="words"></span>
     <input type="text" placeholder="Propose word..." pattern="[^ ]" id="propose"/>
-    </form>
 </div>
 
 <br/><br/>
@@ -54,13 +50,17 @@
 
 <div id="nodes" title="Nodes participating in this story"></div>
 
-<pre id="socket-log" style="max-height: 500px; overflow-y: scroll;max-width: 300px;width:90%;text-align:left; margin: auto; float: none">
+<pre id="socket-log" style="max-height: 500px; overflow-y: scroll;max-width: 300px;width:90%;text-align:left; margin: auto; float: none; white-space: nowrap">
 </pre>
-
+<hr/>
+Made by Max &amp; Nick.
+View the code on <a href="https://github.com/cowpig/blockchain">github</a>.<br/>
+Storycoin is implemented as a double-nested blockchain in rust.
 
 <script>
     var E = function(arg) {return document.getElementById(arg)};
 
+    window.nodes = [];
     window.votes = {};
 
     E('propose').addEventListener('keyup', function(event) {
@@ -185,7 +185,10 @@
             line += val;
         }
         if (msg.name) {
-            E('nodes').innerHTML += '<button class="btn" disabled>' + msg.name + '</button> ';
+            if (window.nodes.indexOf(msg.name) == -1) {
+                window.nodes.push(msg.name);
+                E('nodes').innerHTML += '<button class="btn" disabled>' + msg.name + '</button> ';
+            }
             line += val;
         }
         if (msg.errors) {
