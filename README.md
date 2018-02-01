@@ -1,3 +1,3 @@
-## Naxy McSweets
+## Storycoin
 
 Group storytime powered by blockchain
